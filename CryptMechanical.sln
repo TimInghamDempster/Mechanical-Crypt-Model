@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptMechanical", "CryptMechanical.csproj", "{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{346DA34A-B864-4803-B0E9-811F09EB8BDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameWorld", "GameWorld\GameWorld.csproj", "{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimDX11Renderer", "SlimDX11Renderer\SlimDX11Renderer.csproj", "{10151B41-F2F8-4561-A52E-BC5399632A31}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{346DA34A-B864-4803-B0E9-811F09EB8BDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{346DA34A-B864-4803-B0E9-811F09EB8BDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{346DA34A-B864-4803-B0E9-811F09EB8BDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{346DA34A-B864-4803-B0E9-811F09EB8BDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10151B41-F2F8-4561-A52E-BC5399632A31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10151B41-F2F8-4561-A52E-BC5399632A31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10151B41-F2F8-4561-A52E-BC5399632A31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10151B41-F2F8-4561-A52E-BC5399632A31}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

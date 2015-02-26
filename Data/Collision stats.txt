@@ -1,0 +1,13 @@
+Method	NumCells	Box Tests	Box Overlaps	Collision Tests		Actual Collisions
+
+Brute	10			    0		  0				 102400				  72
+force	20			    0		  0				 409600				 276
+		50			    0		  0				2560000				1296
+
+Basic	10			  666		100				   1440				  72			   
+tree	20			 2107		222				   3104				 276
+		50			10257		882				  12144				1296
+		
+Padded	10			   10		 110			   1600				  72
+tree	20			   13		 304			   4368				 276
+		50			   96		1244			  17744				1296
