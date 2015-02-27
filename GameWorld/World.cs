@@ -231,7 +231,7 @@ namespace GameWorld
                 m_BBoxTree.UpdateOverlapping(m_blobs.Positions, m_blobs.InteractionRadii, m_bBoxRenderArrays);
                 DoCollisionCellBB();
                 //DoCollisionBruteForce();
-                UpdateSprings();
+                m_springs.UpdateSprings(m_springRenderArrays, m_baseColours[1], m_blobs.Positions, m_blobs.Velocities);
                 UpDateCellBaseis();
                 UpdateDirectionalSprings();
                 UpdatePositions();
@@ -667,54 +667,7 @@ namespace GameWorld
             }
         }
 
-        void UpdateSprings()
-        {
-#if DEBUG
-            m_springRenderArrays.Positions.Clear();
-            m_springRenderArrays.Colours.Clear();
-#endif
-
-            for (uint i = 0; i < m_springs.EndPointIndices.Count; i++)
-            {
-                int startIndex = (int)m_springs.StartPointIndices[(int)i];
-                int endIndex = (int)m_springs.EndPointIndices[(int)i];
-
-                Vector2d startPoint = m_blobs.Positions[startIndex];
-                Vector2d endPoint = m_blobs.Positions[endIndex];
-                Vector2d delta = startPoint - endPoint;
-
-                float equilibriumLength = m_springs.RestLengths[(int)i];
-                float stiffness = m_springs.Stiffnesses[(int)i];
-                float currentLenght = (float)Math.Sqrt(Vector2d.DotProduct(delta, delta));
-                if (currentLenght == 0)
-                {
-                    currentLenght = float.MinValue;
-                }
-                float lengthBeyondEquilibrium = currentLenght - equilibriumLength;
-                float restoringForce = lengthBeyondEquilibrium * stiffness * -1.0f;
-
-                if (lengthBeyondEquilibrium > equilibriumLength * 2.0f)
-                {
-                    m_springs.EndPointIndices.RemoveAt((int)i);
-                    m_springs.RestLengths.RemoveAt((int)i);
-                    m_springs.StartPointIndices.RemoveAt((int)i);
-                    m_springs.Stiffnesses.RemoveAt((int)i);
-                    i--;
-                    continue;
-                }
-                
-                Vector2d direction = delta / currentLenght;
-
-                // Assuming contant mass
-                m_blobs.Velocities[startIndex] += direction * restoringForce ;
-                m_blobs.Velocities[endIndex] -= direction * restoringForce;
-
-#if DEBUG
-                m_springRenderArrays.Positions.Add((startPoint + endPoint) / 2.0f);
-                m_springRenderArrays.Colours.Add(m_baseColours[1]);
-#endif
-            }
-        }
+ 
 
         void UpdatePositions()
         {
