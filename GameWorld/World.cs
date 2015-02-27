@@ -233,7 +233,7 @@ namespace GameWorld
                 //DoCollisionBruteForce();
                 m_springs.UpdateSprings(m_springRenderArrays, m_baseColours[1], m_blobs.Positions, m_blobs.Velocities);
                 UpDateCellBaseis();
-                UpdateDirectionalSprings();
+                m_directionalSprings.UpdateDirectionalSprings(m_blobs.Positions, m_blobs.Velocities, m_springRenderArrays, m_baseColours[0], m_blobs.CellIds, m_cellData.Basis1, m_cellData.Basis2);
                 UpdatePositions();
                 
                 if (m_cellData.Basis1.Count == 10)
@@ -607,67 +607,7 @@ namespace GameWorld
                 m_collisions.RemoveAt(index - totalRemoved);
                 totalRemoved++;
             }
-        }
-
-        void UpdateDirectionalSprings()
-        {
-            for (uint i = 0; i < m_directionalSprings.EndPointIndices.Count; i++)
-            {
-                int startIndex = (int)m_directionalSprings.StartPointIndices[(int)i];
-                int endIndex = (int)m_directionalSprings.EndPointIndices[(int)i];
-
-                Vector2d startPoint = m_blobs.Positions[startIndex];
-                Vector2d endPoint = m_blobs.Positions[endIndex];
-                Vector2d delta = endPoint - startPoint;
-
-
-                // Assumes both spring points are inside the same cell
-                Vector2d basis1 = m_cellData.Basis1[m_blobs.CellIds[startIndex]];
-                Vector2d basis2 = m_cellData.Basis2[m_blobs.CellIds[startIndex]];
-                Vector2d transformedDelta = delta;
-                transformedDelta.X = Vector2d.DotProduct(delta, basis1);
-                transformedDelta.Y = Vector2d.DotProduct(delta, basis2);
-
-                Vector2d equilibriumVector = m_directionalSprings.RestVectors[(int)i];
-                float stiffness = m_directionalSprings.Stiffnesses[(int)i];
-               
-                if (equilibriumVector.X > equilibriumVector.Y)
-                {
-                    if (transformedDelta.X < 0.0f)
-                    {
-                        //endPoint.X = startPoint.X;
-                        m_blobs.Positions[endIndex] = endPoint;
-                    }
-                }
-                else
-                {
-                    if (transformedDelta.Y < 0.0f)
-                    {
-                        //endPoint.Y = startPoint.Y;
-                        m_blobs.Positions[endIndex] = endPoint;
-                    }
-                }
-
-               // delta = endPoint - startPoint;
-               // transformedDelta.X = Vector2d.DotProduct(delta, basis1);
-               // transformedDelta.Y = Vector2d.DotProduct(delta, basis2);
-                
-
-                Vector2d lengthBeyondEquilibrium = equilibriumVector - transformedDelta;
-                Vector2d restoringForce = lengthBeyondEquilibrium * stiffness;
-
-                // Assuming contant mass
-                m_blobs.Velocities[startIndex] -= restoringForce;
-                m_blobs.Velocities[endIndex] += restoringForce;
-
-#if DEBUG
-                m_springRenderArrays.Positions.Add((startPoint + endPoint) / 2.0f);
-                m_springRenderArrays.Colours.Add(m_baseColours[0]);
-#endif
-            }
-        }
-
- 
+        } 
 
         void UpdatePositions()
         {
