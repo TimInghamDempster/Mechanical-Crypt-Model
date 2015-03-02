@@ -25,13 +25,18 @@ namespace SlimDX11Renderer
         Texture2D m_depthBuffer;
         RasterizerState m_rasterizerState;
         Dictionary<string, SamplerState> samplerStates_;
+        List<Camera> cameras_;
 
         List<Scene> m_scenes;
         UInt32 m_currentSceneIndex;
 
+        int cameraIndex_;
+
         public Renderer(String title)
         {
             m_scenes = new List<Scene>();
+
+            cameras_ = new List<Camera>();
 
             samplerStates_ = new Dictionary<string, SamplerState>();
 
@@ -137,6 +142,17 @@ namespace SlimDX11Renderer
             device_.ImmediateContext.OutputMerger.SetTargets(m_depthView, renderView_);
 
             CreateSamplers();
+        }
+
+        public int AddCamera(Camera cam)
+        {
+            cameras_.Add(cam);
+            return cameras_.Count - 1;
+        }
+
+        public void SetCurrentCamera(int index)
+        {
+            cameraIndex_ = index;
         }
 
         public void SetCurrentScene(Core.IRenderableScene newCurrentScene)
