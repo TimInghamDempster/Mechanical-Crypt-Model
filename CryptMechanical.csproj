@@ -67,7 +67,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy $(ProjectDir)\Content $(TargetDir)\Content /s /i /d</PostBuildEvent>
+    <PostBuildEvent>xcopy $(ProjectDir)\Content $(TargetDir)\Content /s /i /d /y</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

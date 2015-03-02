@@ -16,10 +16,10 @@ namespace CryptCC
         static void Main(string[] args)
         {
 
-            SlimDX11Renderer.Renderer renderer = new SlimDX11Renderer.Renderer("Cell-Centre Crypt Simulation");
+            SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
             m_gameWorld = new GameWorld.World(renderer);
 
-            m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.001f, 100.0f);
+            m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 10000.0f);
 
             Input = new SlimDX11Renderer.InputHandler();
 
@@ -29,7 +29,7 @@ namespace CryptCC
 
             int camIndex = renderer.AddCamera(m_camera);
             renderer.SetCurrentCamera(camIndex);
-            m_camera.Locator.Move(0.0f, 0.0f, 2.0f);
+            m_camera.Locator.Move(0.0f,0.0f, 1000.0f);
 
             renderer.Run(funcs);
 
@@ -40,19 +40,19 @@ namespace CryptCC
         {
             if (Input.Query(Keys.A))
             {
-                m_camera.Locator.MoveLocal(-0.02f, 0.0f, 0.0f);
+                m_camera.Locator.MoveLocal(-20.0f, 0.0f, 0.0f);
             }
             if (Input.Query(Keys.D))
             {
-                m_camera.Locator.MoveLocal(0.02f, 0.0f, 0.0f);
+                m_camera.Locator.MoveLocal(20.0f, 0.0f, 0.0f);
             }
             if (Input.Query(Keys.W))
             {
-                m_camera.Locator.MoveLocal(0.0f, 0.0f, 0.02f);
+                m_camera.Locator.MoveLocal(0.0f, 0.0f, 20.0f);
             }
             if (Input.Query(Keys.S))
             {
-                m_camera.Locator.MoveLocal(0.0f, 0.0f, -0.02f);
+                m_camera.Locator.MoveLocal(0.0f, 0.0f, -20.0f);
             }
             if (Input.Query(Keys.Up))
             {

@@ -5,6 +5,7 @@ float2 scale;
 float2 cameraPos;
 float2 entityPosition;
 float4 colour;
+matrix worldViewProj;
 
 struct VS_OUTPUT
 {
@@ -15,11 +16,7 @@ struct VS_OUTPUT
 VS_OUTPUT VShader(float4 position : POSITION)
 {
 	VS_OUTPUT Output;
-	Output.position = position;
-	Output.position.xy *= scale;
-	Output.position.xy -= cameraPos;
-	Output.position.xy += entityPosition;
-	Output.position.z = 0.5f;
+	Output.position = mul(position, worldViewProj);
 	Output.rawPos = Output.position;
     return Output;
 }

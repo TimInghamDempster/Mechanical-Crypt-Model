@@ -15,7 +15,7 @@ namespace Snowball
         static void Main(string[] args)
         {
 
-            SlimDX11Renderer.Renderer renderer = new SlimDX11Renderer.Renderer("Mechanical Crypt Simulation");
+            SlimDX11Renderer.VoroniRenderer2d renderer = new SlimDX11Renderer.VoroniRenderer2d("Mechanical Crypt Simulation");
             m_gameWorld = new GameWorld.World(renderer);
 
             Input = new SlimDX11Renderer.InputHandler();

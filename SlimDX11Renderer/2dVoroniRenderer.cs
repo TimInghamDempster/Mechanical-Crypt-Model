@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace SlimDX11Renderer
 {
-    public class Renderer : Core.IRenderer
+    public class VoroniRenderer2d : Core.IRenderer
     {
 
         Device device_;
@@ -32,7 +32,7 @@ namespace SlimDX11Renderer
 
         int cameraIndex_;
 
-        public Renderer(String title)
+        public VoroniRenderer2d(String title)
         {
             m_scenes = new List<Scene>();
 
