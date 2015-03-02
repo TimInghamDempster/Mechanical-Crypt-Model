@@ -77,6 +77,8 @@ namespace GameWorld
 
             //InitVisualisationTest();
 
+            CreateBlobRow(new Vector2d(-1000.0f, -100.0f), new Vector2d(50.0f, 0.0f), 10, m_baseColours[2]);
+
             for (int i = -4; i < 3; i++)
             {
                 bool grow = i == 0 ? true : false;
@@ -90,7 +92,13 @@ namespace GameWorld
             m_scene.RenderArrays.Add(m_basisRenderArrays);
         }
 
-        
+        void CreateBlobRow(Vector2d start, Vector2d offset, int count, Colour colour)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                m_blobs.AddBlob(start + (offset * (float)i), colour, new Vector2d(), offset.Length(), -1, true, 1);
+            }
+        }
 
         void InitCell(Vector2d position, int cellIndex, bool isGrowing)
         {
