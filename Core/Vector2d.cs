@@ -11,8 +11,6 @@ namespace Core
         public float X;
         public float Y;
 
-        public Vector2d(float x, float y) { X = x; Y = y; }
-
         public float Length()
         {
             return (float)Math.Sqrt(Vector2d.DotProduct(this, this));
