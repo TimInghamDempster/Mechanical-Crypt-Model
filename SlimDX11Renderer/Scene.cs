@@ -30,8 +30,10 @@ namespace SlimDX11Renderer
         Vector2 m_cameraPos;
 
         Core.IRenderableItem m_blobRenderable;
+        Core.IRenderableItem m_3dRenderable;
 
         public Core.IRenderableItem BlobRenderable { get { return m_blobRenderable; } }
+        public Core.IRenderableItem Renderable3d { get { return m_3dRenderable; } }
         public Vector2 CameraPos { get { return m_cameraPos; } }
 
         public float Width { get { return m_screenSize.X; } }
@@ -58,7 +60,8 @@ namespace SlimDX11Renderer
             m_sampler = sampler;
             m_screenSize = screenSize;
 
-            m_blobRenderable = GetNewBlobRenderable("Content/Shaders/BlobRenderer.fx", "Blob");
+            m_blobRenderable = GetNewBlobRenderable("Content/Shaders/BlobRenderer.fx", "Blob", 1.0f);
+            m_3dRenderable = GetNewBlobRenderable("Content/Shaders/BlobRenderer3d.fx", "Blob", 20.0f);
             m_blobRenderable.SetSize(10.0f, 10.0f);
         }
 
@@ -74,9 +77,9 @@ namespace SlimDX11Renderer
             return renderable;
         }
         
-        public Core.IRenderableItem GetNewBlobRenderable(string effectFilename, string techniqueName)
+        public Core.IRenderableItem GetNewBlobRenderable(string effectFilename, string techniqueName, float scale)
         {
-            var renderable = new BlobRenderable(effectFilename, techniqueName, m_device, Matrix.Identity, this, m_sampler, m_screenSize);
+            var renderable = new BlobRenderable(effectFilename, techniqueName, m_device, Matrix.Identity, this, m_sampler, m_screenSize, scale);
             objectsToDraw_.Add(renderable);
             return renderable;
         }

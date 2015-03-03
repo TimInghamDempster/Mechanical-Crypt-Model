@@ -107,9 +107,9 @@ namespace SlimDX11Renderer
 
 
 
-        public BlobRenderable(string effectFilename, string techniqueName, SlimDX.Direct3D11.Device device, Matrix world, Scene scene, SamplerState sampler, Vector2 screenSize)
+        public BlobRenderable(string effectFilename, string techniqueName, SlimDX.Direct3D11.Device device, Matrix world, Scene scene, SamplerState sampler, Vector2 screenSize, float scale)
         {
-            mesh_ = Mesh.MakeQuadMesh(device);
+            mesh_ = Mesh.MakeQuadMesh(device, scale);
             var effect = scene.LoadEffect(effectFilename);
             technique_ = effect.GetTechniqueByName(techniqueName);
             layout_ = new InputLayout(device, technique_.GetPassByIndex(0).Description.Signature, new[] {

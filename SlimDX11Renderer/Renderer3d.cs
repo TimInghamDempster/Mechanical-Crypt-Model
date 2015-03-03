@@ -228,7 +228,7 @@ namespace SlimDX11Renderer
                 device_.ImmediateContext.ClearRenderTargetView(renderView_, Color.CornflowerBlue);
                 device_.ImmediateContext.ClearDepthStencilView(m_depthView, DepthStencilClearFlags.Depth, 1.0f, 0x00);
 
-                var renderable = (BlobRenderable)scene.BlobRenderable;
+                var renderable = (BlobRenderable)scene.Renderable3d;
                 device_.ImmediateContext.InputAssembler.InputLayout = renderable.Layout;
                 device_.ImmediateContext.InputAssembler.PrimitiveTopology = renderable.Mesh.Topology;
                 device_.ImmediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(renderable.Mesh.Vertices, renderable.Mesh.Stride, renderable.Mesh.Offset));

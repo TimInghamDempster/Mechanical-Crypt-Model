@@ -109,7 +109,7 @@ namespace SlimDX11Renderer
 
         public Renderable(string effectFilename, string techniqueName, SlimDX.Direct3D11.Device device, Matrix world, string textureFilename, Scene scene, SamplerState sampler, Vector2 screenSize, bool isCameraRelative)
         {
-            mesh_ = Mesh.MakeQuadMesh(device);
+            mesh_ = Mesh.MakeQuadMesh(device, 1.0f);
             var effect = scene.LoadEffect(effectFilename);
             technique_ = effect.GetTechniqueByName(techniqueName);
             layout_ = new InputLayout(device, technique_.GetPassByIndex(0).Description.Signature, new[] {
