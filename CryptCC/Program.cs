@@ -10,14 +10,14 @@ namespace CryptCC
     class Program
     {
         public static SlimDX11Renderer.InputHandler Input;
-        public static GameWorld.World m_gameWorld;
+        public static GameWorld.CryptCC m_crypt;
         static SlimDX11Renderer.Camera m_camera; 
 
         static void Main(string[] args)
         {
 
             SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
-            m_gameWorld = new GameWorld.World(renderer);
+            m_crypt = new GameWorld.CryptCC(renderer);
 
             m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 10000.0f);
 
@@ -25,7 +25,7 @@ namespace CryptCC
 
             var funcs = new Core.UpdateFunctions();
             funcs.AddUpdateFunction(UpdateInput, new TimeSpan(0, 0, 0, 0, 20));
-            funcs.AddUpdateFunction(m_gameWorld.Tick, new TimeSpan(0, 0, 0, 0, 20));
+            funcs.AddUpdateFunction(m_crypt.Tick, new TimeSpan(0, 0, 0, 0, 20));
 
             int camIndex = renderer.AddCamera(m_camera);
             renderer.SetCurrentCamera(camIndex);

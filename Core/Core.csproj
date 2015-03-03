@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="BBoxTree.cs" />
     <Compile Include="Colour.cs" />
+    <Compile Include="RenderArrays3d.cs" />
+    <Compile Include="Vector3d.cs" />
     <Compile Include="IRenderableItem.cs" />
     <Compile Include="IRendereableScene.cs" />
     <Compile Include="IRenderer.cs" />

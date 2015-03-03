@@ -178,16 +178,16 @@ namespace SlimDX11Renderer
         {
             var data = new List<Vector4>();
 
-            data.Add(new Vector4(-1.0f, -1.0f, 0.50f, 1.0f));
+            data.Add(new Vector4(-20.0f, -20.0f, 0.50f, 1.0f));
             data.Add(new Vector4(0.1f, 0.1f, 0.5f, 0.0f));
 
-            data.Add(new Vector4(-1.0f, 1.0f, 0.50f, 1.0f));
+            data.Add(new Vector4(-20.0f, 20.0f, 0.50f, 1.0f));
             data.Add(new Vector4(0.1f, 0.1f, 0.5f, 0.0f));
 
-            data.Add(new Vector4(1.0f, -1.0f, 0.50f, 1.0f));
+            data.Add(new Vector4(20.0f, -20.0f, 0.50f, 1.0f));
             data.Add(new Vector4(0.1f, 0.1f, 0.5f, 0.0f));
 
-            data.Add(new Vector4(1.0f, 1.0f, 0.50f, 1.0f));
+            data.Add(new Vector4(20.0f, 20.0f, 0.50f, 1.0f));
             data.Add(new Vector4(0.1f, 0.1f, 0.5f, 0.5f));
 
             var stream = new DataStream(128, true, true);

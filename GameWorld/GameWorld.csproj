@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobArrays.cs" />
+    <Compile Include="CellArrayCC.cs" />
     <Compile Include="CellDataArrays.cs" />
+    <Compile Include="CryptCC.cs" />
     <Compile Include="SpringArray.cs" />
     <Compile Include="DirectionalSpringArray.cs" />
     <Compile Include="World.cs" />

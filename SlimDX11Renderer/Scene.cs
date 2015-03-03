@@ -38,6 +38,7 @@ namespace SlimDX11Renderer
         public float Height { get { return m_screenSize.Y; } }
 
         public List<Core.RenderArrays> RenderArrays { get; set; }
+        public List<Core.RenderArrays3d> RenderArrays3d { get; set; }
 
         public Scene(Device device, SamplerState sampler, Vector2 screenSize)
         {
@@ -49,6 +50,7 @@ namespace SlimDX11Renderer
             textures_ = new Dictionary<string, ShaderResourceView>();
 
             RenderArrays = new List<Core.RenderArrays>();
+            RenderArrays3d = new List<Core.RenderArrays3d>();
 
             cameraIndex_ = -1;
 

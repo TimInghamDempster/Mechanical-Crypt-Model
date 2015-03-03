@@ -236,7 +236,7 @@ namespace SlimDX11Renderer
                 var effect = renderable.Effect;
                 effect.GetVariableByName("scale").AsVector().Set(renderable.Scale);
 
-                foreach (var rArrays in scene.RenderArrays)
+                foreach (var rArrays in scene.RenderArrays3d)
                 {
                     for (int i = 0; i < rArrays.Colours.Count; i++)
                     {
@@ -245,7 +245,7 @@ namespace SlimDX11Renderer
 
                         //effect.GetVariableByName("colour").AsVector().Set(new Vector4(colour.R, colour.G, colour.B, colour.A));
                         //effect.GetVariableByName("entityPosition").AsVector().Set(new Vector2(pos.X / scene.Width, pos.Y / scene.Height));
-                        renderable.Effect.GetVariableByName("worldViewProj").AsMatrix().SetMatrix(Matrix.Translation(pos.X, pos.Y, 0.0f) * cameras_[cameraIndex_].ViewProj);
+                        renderable.Effect.GetVariableByName("worldViewProj").AsMatrix().SetMatrix(Matrix.Translation(pos.X, pos.Y, pos.Z) * cameras_[cameraIndex_].ViewProj);
 
                         for (int j = 0; j < renderable.Technique.Description.PassCount; ++j)
                         {

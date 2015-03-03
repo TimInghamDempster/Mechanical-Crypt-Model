@@ -16,5 +16,6 @@ namespace Core
         float Width { get; }
         float Height { get; }
         List<Core.RenderArrays> RenderArrays { get; set; }
+        List<Core.RenderArrays3d> RenderArrays3d { get; set; }
     }
 }
