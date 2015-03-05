@@ -98,7 +98,7 @@ namespace SlimDX11Renderer
 
             DepthStencilStateDescription dsStateDesc = new DepthStencilStateDescription()
             {
-                IsDepthEnabled = false,
+                IsDepthEnabled = true,
                 DepthWriteMask = DepthWriteMask.All,
                 DepthComparison = Comparison.Less,
 
@@ -234,7 +234,6 @@ namespace SlimDX11Renderer
                 device_.ImmediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(renderable.Mesh.Vertices, renderable.Mesh.Stride, renderable.Mesh.Offset));
 
                 var effect = renderable.Effect;
-                effect.GetVariableByName("scale").AsVector().Set(renderable.Scale);
 
                 foreach (var rArrays in scene.RenderArrays3d)
                 {
@@ -243,7 +242,7 @@ namespace SlimDX11Renderer
                         var colour = rArrays.Colours[i];
                         var pos = rArrays.Positions[i];
 
-                        //effect.GetVariableByName("colour").AsVector().Set(new Vector4(colour.R, colour.G, colour.B, colour.A));
+                        effect.GetVariableByName("colour").AsVector().Set(new Vector4(colour.R, colour.G, colour.B, colour.A));
                         //effect.GetVariableByName("entityPosition").AsVector().Set(new Vector2(pos.X / scene.Width, pos.Y / scene.Height));
                         renderable.Effect.GetVariableByName("worldViewProj").AsMatrix().SetMatrix(Matrix.Translation(pos.X, pos.Y, pos.Z) * cameras_[cameraIndex_].ViewProj);
 

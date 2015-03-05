@@ -21,8 +21,11 @@ namespace GameWorld
         
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
-        const float m_wntRequirement = 100.0f;
+        const float m_betaCateninRequirement = 25.0f;
         const float m_separation = 1000.0f;
+        const float m_betaCateninConsumptionPerTimestep = 0.5f;
+        Colour[] m_baseColours;
+        int[] m_colourCounts;
 
         public CryptCC(IRenderer renderer)
         {
@@ -42,8 +45,25 @@ namespace GameWorld
 
             m_scene.RenderArrays3d.Add(m_renderArrays);
 
-            m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptRadius, 0.0f), 0.0f, 100.0f);
+            m_baseColours = new Colour[11];
+            m_colourCounts = new int[11];
+
+            m_baseColours[00] = new Colour() { R = 1.0f, G = 0.0f, B = 0.0f, A = 0.0f };
+            m_baseColours[01] = new Colour() { R = 0.0f, G = 1.0f, B = 0.0f, A = 0.0f };
+            m_baseColours[02] = new Colour() { R = 0.0f, G = 0.0f, B = 1.0f, A = 0.0f };
+            m_baseColours[03] = new Colour() { R = 1.0f, G = 1.0f, B = 0.0f, A = 0.0f };
+            m_baseColours[04] = new Colour() { R = 0.0f, G = 1.0f, B = 1.0f, A = 0.0f };
+            m_baseColours[05] = new Colour() { R = 1.0f, G = 0.5f, B = 0.5f, A = 0.0f };
+            m_baseColours[06] = new Colour() { R = 0.5f, G = 1.0f, B = 0.5f, A = 0.0f };
+            m_baseColours[07] = new Colour() { R = 0.5f, G = 0.5f, B = 1.0f, A = 0.0f };
+            m_baseColours[08] = new Colour() { R = 1.0f, G = 1.0f, B = 0.5f, A = 0.0f };
+            m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
+            m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
+
+            m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptRadius, 0.0f), 0.0f, 100.0f, m_baseColours[0], 0);
+            m_colourCounts[0]++;
             //m_cells.AddCell(new Vector3d(0.0f, 0.0f, 0.0f));
+
         }
 
         public void Tick()
@@ -62,6 +82,34 @@ namespace GameWorld
                 var pos = m_cells.Positions[i];
                 if (pos.Y > m_cryptHeight - m_cryptRadius)
                 {
+                    m_colourCounts[m_cells.ColourIndices[i]]--;
+
+                    int numActiveColours = 0;
+                    foreach (int count in m_colourCounts)
+                    {
+                        if (count > 0)
+                        {
+                            numActiveColours++;
+                        }
+                    }
+
+                    if (numActiveColours == 1)
+                    {
+                        m_colourCounts[m_cells.ColourIndices[0]] = 0;
+                        for (int j = 0; j < m_cells.ColourIndices.Count; j++)
+                        {
+                            // If j == i we increment the colour count for the cell we
+                            // are about to kill so we never get that colour back to 0
+                            if (j != i)
+                            {
+                                int colourIndex = m_random.Next(11);
+                                m_cells.ColourIndices[j] = colourIndex;
+                                m_cells.Colours[j] = m_baseColours[colourIndex];
+                                m_colourCounts[colourIndex]++;
+                            }
+                        }
+                    }
+
                     m_cells.Remove(i);
                 }
             }
@@ -78,7 +126,7 @@ namespace GameWorld
                     var delta = outerPos - innerPos;
                     var separation = delta.Length();
 
-                    if (separation < m_separation)
+                    if (separation < m_separation * 1.1f)
                     {
                         float restitution = m_separation - separation;
                         restitution /= 100.0f;
@@ -147,7 +195,7 @@ namespace GameWorld
                     {
                         m_cells.GrowthStageCurrentTimes[i] = 0.0f;
                         m_cells.CycleStages[i] = CellCycleStage.G0;
-                        m_cells.Wnt[i] /= 2.0f;
+                        m_cells.BetaCatenin[i] = 0.0f;
 
                         Vector3d newPos = m_cells.Positions[i];
                         newPos.X += 5.0f - ((float)m_random.NextDouble() * 10.0f);
@@ -159,7 +207,10 @@ namespace GameWorld
                             newPos.Y = -1.0f * m_cryptRadius + 0.1f;
                         }
 
-                        m_cells.AddCell(newPos, m_cells.Wnt[i], 50.0f + ((float)m_random.NextDouble() * 50.0f));
+                        m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
+
+                        m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i]);
+                        m_colourCounts[m_cells.ColourIndices[i]]++;
                     }
                 }
             }
@@ -173,11 +224,17 @@ namespace GameWorld
                 float height = yPos + m_cryptRadius;
                 float wntAmount = (m_cryptHeight - height) / m_cryptHeight;
 
-                m_cells.Wnt[i] += wntAmount;
+                m_cells.BetaCatenin[i] += wntAmount - m_betaCateninConsumptionPerTimestep;
 
-                if (m_cells.Wnt[i] > m_wntRequirement)
+                if (m_cells.BetaCatenin[i] < 0.0f)
+                {
+                    m_cells.BetaCatenin[i] = 0.0f;
+                }
+
+                if (m_cells.BetaCatenin[i] > m_betaCateninRequirement)
                 {
                     m_cells.CycleStages[i] = CellCycleStage.G;
+                    m_cells.Colours[i] = new Colour() { A = 1.0f, R = 1.0f, B = 1.0f, G = 0.0f };
                 }
             }
         }
