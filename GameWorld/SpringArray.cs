@@ -48,7 +48,7 @@ namespace GameWorld
                 float lengthBeyondEquilibrium = currentLenght - equilibriumLength;
                 float restoringForce = lengthBeyondEquilibrium * stiffness * -1.0f;
 
-                if (lengthBeyondEquilibrium > equilibriumLength * 2.0f)
+                /*if (lengthBeyondEquilibrium > equilibriumLength * 2.0f)
                 {
                     EndPointIndices.RemoveAt((int)i);
                     RestLengths.RemoveAt((int)i);
@@ -56,7 +56,7 @@ namespace GameWorld
                     Stiffnesses.RemoveAt((int)i);
                     i--;
                     continue;
-                }
+                }*/
 
                 Vector2d direction = delta / currentLenght;
 

@@ -29,7 +29,6 @@ namespace GameWorld
 
         Colour[] m_baseColours;
 
-        const float m_intraCellBlobSeparation = 50.0f;
 
         public World(IRenderer renderer)
         {
@@ -77,7 +76,7 @@ namespace GameWorld
 
             //InitVisualisationTest();
 
-            for (int i = -4; i < 3; i++)
+            for (int i = -0; i < 1; i++)
             {
                 bool grow = i == 0 ? true : false;
                 InitCell(new Vector2d() { X = (float)(250.0f * i + 150.0f), Y = 0 }, i + 4, grow);
@@ -94,99 +93,47 @@ namespace GameWorld
 
         void InitCell(Vector2d position, int cellIndex, bool isGrowing)
         {
-            float diagDist = (float)Math.Sqrt(m_intraCellBlobSeparation * m_intraCellBlobSeparation * 2.0f);
-           // var testBlobs = new List<Vector2d>();
-
             int cellId = m_cellData.CurrentSeparationMultiplier.Count;
             m_cellData.CurrentSeparationMultiplier.Add(1.0f);
-            m_cellData.OriginalSeparation.Add(m_intraCellBlobSeparation);
+            m_cellData.OriginalSurfaceArea.Add(CellDataArrays.IntraCellBlobSeparation);
             m_cellData.BlobIndices.Add(m_blobs.Positions.Count);
-            m_cellData.SpringIndices.Add(m_directionalSprings.EndPointIndices.Count);
+            m_cellData.SpringIndices.Add(m_springs.EndPointIndices.Count);
             m_cellData.IsGrowing.Add(isGrowing);
-            m_cellData.Basis1.Add(new Vector2d() { X = 1.0f, Y = 0.0f });
-            m_cellData.Basis2.Add(new Vector2d() { X = 0.0f, Y = 1.0f });
 
             int cellBBoxId = m_BBoxTree.AddNode(0, false);
             List<int> subCellBBIds = new List<int>(8);
 
-            for (int i = 0; i < 8; i++)
+            /*for (int i = 0; i < 8; i++)
             {
                 subCellBBIds.Add(m_BBoxTree.AddNode(cellBBoxId, true));
-            }
+            }*/
 
             var colour = m_baseColours[m_random.Next(12)];
 
             uint rootBlobIndex = (uint)m_blobs.Positions.Count;
 
-            for (uint y = 0; y < 8; y++)
+            for (uint theta = 0; theta < CellDataArrays.BoundaryElementsInCell; theta++)
             {
-                for (uint x = 0; x < 4; x++)
+                float fTheta = (float)Math.PI * 2.0f * (float)theta / (float)CellDataArrays.BoundaryElementsInCell;
+                Vector2d pos = position;
+                pos += new Vector2d((float)Math.Cos(fTheta), (float)Math.Sin(fTheta)) * CellDataArrays.CellIdealRadii;
+             
+                int blobId = m_blobs.CellIds.Count;
+                m_blobs.AddBlob(
+                    pos,
+                    colour,
+                    new Vector2d(),
+                    CellDataArrays.IntraCellBlobSeparation,
+                    cellId,
+                    true,
+                    -1);
+                
+                if(theta != 0)
                 {
-                    int bbIndex = x > 1 ? 0 : 4;
-                    bbIndex += (int)y / 2;
-                    m_BBoxTree.AddChildIndexToNode(subCellBBIds[bbIndex], m_blobs.Positions.Count);
-
-                    bool collideable = false;
-                    if (x == 0 || x == 3 || y == 0 || y == 3)
-                    {
-                        collideable = true;
-                    }
-                    m_blobs.AddBlob(new Vector2d() { X = (float)(x * m_intraCellBlobSeparation) + position.X, Y = (float)(y * m_intraCellBlobSeparation) + position.Y},
-                        colour, new Vector2d() { X = 0.0f * (float)(m_random.NextDouble() - 0.5), Y = 0.0f * (float)(m_random.NextDouble() - 0.5) },
-                        m_intraCellBlobSeparation * 1.0f,
-                        cellIndex,
-                        collideable,
-                        subCellBBIds[bbIndex]);
-                    float stiffness = 0.003f;
-                    HashSet<uint> nuclearIndices = new HashSet<uint>(){
-                        5 + rootBlobIndex,
-                        6 + rootBlobIndex,
-                        9 + rootBlobIndex,
-                        10 + rootBlobIndex};
-                    if (x > 0)
-                    {
-                        uint rowIndex = y * 4 + rootBlobIndex;
-                        uint startIndex = x + rowIndex - 1;
-                        uint endIndex = x + rowIndex;
-                        if (nuclearIndices.Contains(startIndex) && nuclearIndices.Contains(endIndex))
-                        {
-                            stiffness *= 1.0f;
-                        }
-                        AddDirectionalSpring(endIndex, startIndex, stiffness, m_blobs.Positions[(int)(x + rowIndex)] - m_blobs.Positions[(int)(x + rowIndex - 1)]);
-                       // if(x == 1 && y == 0)
-                         //   AddTestBlob(x+ rowIndex, x + rowIndex - 1, testBlobs);
-                    }
-                    if (y > 0)
-                    {
-                        uint rowIndex = y * 4 + rootBlobIndex;
-                        uint startIndex = x + rowIndex - 4;
-                        uint endIndex = x + rowIndex;
-                        if (nuclearIndices.Contains(startIndex) && nuclearIndices.Contains(endIndex))
-                        {
-                            stiffness *= 1.0f;
-                        }
-                        AddDirectionalSpring(endIndex, startIndex, stiffness, m_blobs.Positions[(int)(x + rowIndex)] - m_blobs.Positions[(int)(x + rowIndex - 4)]);
-                        //if(y == 1 && x == 0)
-                          //  AddTestBlob(x + rowIndex, x + rowIndex - 4,  testBlobs);
-                    }
+                    AddSpring(theta, theta - 1, 0.0001f, 2.0f);
                 }
             }
-           /* foreach (var p in testBlobs)
-            {
-                m_blobs.Positions.Add(p);
-                m_blobs.Colours.Add(m_baseColours[0]);
-            }*/
-            //m_blobs.Colours[0] = m_baseColours[0];
-            //m_blobs.Colours[5] = m_baseColours[0];
-        }
-
-        void AddTestBlob(uint index1, uint index2, List<Vector2d> testBlobs)
-        {
-            Vector2d pos1 = m_blobs.Positions[(int)index1];
-            Vector2d pos2 = m_blobs.Positions[(int)index2];
-            Vector2d pos = pos1 + pos2;
-            pos /= 2;
-            testBlobs.Add(pos);
+            AddSpring(rootBlobIndex, rootBlobIndex + CellDataArrays.BoundaryElementsInCell - 1, 0.0001f, 2.0f);
         }
 
         void AddSpring(uint startIndex, uint endIndex, float stiffness, float restLength)
@@ -227,23 +174,22 @@ namespace GameWorld
             for (int i = 0; i < 100; i++)
             {
                 KillMomentum();
-                GrowAndDivideCells();
-                m_BBoxTree.UpdateOverlapping(m_blobs.Positions, m_blobs.InteractionRadii, m_bBoxRenderArrays);
-                DoCollisionCellBB();
-                //DoCollisionBruteForce();
+                //GrowAndDivideCells();
+                //m_BBoxTree.UpdateOverlapping(m_blobs.Positions, m_blobs.InteractionRadii, m_bBoxRenderArrays);
+                //DoCollisionCellBB();
+                DoCollisionBruteForce();
                 m_springs.UpdateSprings(m_springRenderArrays, m_baseColours[1], m_blobs.Positions, m_blobs.Velocities);
-                UpDateCellBaseis();
-                m_directionalSprings.UpdateDirectionalSprings(m_blobs.Positions, m_blobs.Velocities, m_springRenderArrays, m_baseColours[0], m_blobs.CellIds, m_cellData.Basis1, m_cellData.Basis2);
+                m_cellData.UpdateAreaSprings(m_blobs);
                 UpdatePositions();
                 
-                if (m_cellData.Basis1.Count == 10)
+                if (m_cellData.BlobIndices.Count == 10)
                 {
                     int a = 0;
-                } if (m_cellData.Basis1.Count == 20)
+                } if (m_cellData.BlobIndices.Count == 20)
                 {
                     int a = 0;
                 }
-                if (m_cellData.Basis1.Count == 50)
+                if (m_cellData.BlobIndices.Count == 50)
                 {
                     int a = 0;
                 }
@@ -256,48 +202,6 @@ namespace GameWorld
             for (int i = 0; i < m_blobs.Velocities.Count; i++)
             {
                 m_blobs.Velocities[i] *= 0.0f;
-            }
-        }
-
-        void UpDateCellBaseis()
-        {
-#if DEBUG
-            m_basisRenderArrays.Positions.Clear();
-            m_basisRenderArrays.Colours.Clear();
-#endif
-
-            for (int cellIndex = 0; cellIndex < m_cellData.Basis1.Count; cellIndex++)
-            {
-                Vector2d cumulative = new Vector2d();
-#if DEBUG
-                Vector2d cellPos = new Vector2d();
-#endif
-                for (int blobInCell = 0; blobInCell < 28; blobInCell++)
-                {
-                    int blobIndex = cellIndex * 32 + blobInCell;
-                    Vector2d delta = m_blobs.Positions[blobIndex] - m_blobs.Positions[blobIndex + 4];
-                    delta /= delta.Length();
-                    cumulative -= delta;
-#if DEBUG
-                    cellPos += m_blobs.Positions[blobIndex];
-#endif
-                }
-
-                float length = cumulative.Length();
-                Vector2d basis2 = cumulative / length;
-                Vector2d basis1 = new Vector2d() { X = basis2.Y, Y = basis2.X * -1.0f };
-                m_cellData.Basis1[cellIndex] = basis1;
-                m_cellData.Basis2[cellIndex] = basis2;
-
-#if DEBUG
-                cellPos /= 28.0f;
-                m_basisRenderArrays.Positions.Add(cellPos);
-                m_basisRenderArrays.Colours.Add(m_baseColours[2]);
-                m_basisRenderArrays.Positions.Add(cellPos + basis1 * 80.0f);
-                m_basisRenderArrays.Colours.Add(m_baseColours[2]);
-                m_basisRenderArrays.Positions.Add(cellPos + basis2 * 80.0f);
-                m_basisRenderArrays.Colours.Add(m_baseColours[2]);
-#endif
             }
         }
 
@@ -362,11 +266,9 @@ namespace GameWorld
             int newCellStartBlobIndex = m_blobs.Positions.Count;
             m_cellData.BlobIndices.Add(newCellStartBlobIndex);
             m_cellData.CurrentSeparationMultiplier.Add(1.0f);
-            m_cellData.OriginalSeparation.Add(m_intraCellBlobSeparation);
+            m_cellData.OriginalSurfaceArea.Add(CellDataArrays.IntraCellBlobSeparation);
             m_cellData.IsGrowing.Add(false);
             m_cellData.SpringIndices.Add(m_directionalSprings.StartPointIndices.Count);
-            m_cellData.Basis1.Add(m_cellData.Basis1[cellIndex]);
-            m_cellData.Basis2.Add(m_cellData.Basis2[cellIndex]);
 
             int cellBBoxId = m_BBoxTree.AddNode(0, false);
             int bboxDelta = m_BBoxTree.Parents.Count - m_BBoxTree.Parents[m_blobs.BBoxIndices[startBlobIndex]] - 1;
@@ -388,7 +290,7 @@ namespace GameWorld
                 m_blobs.AddBlob(m_blobs.Positions[startBlobIndex + i],
                     colour,
                     new Vector2d(),
-                    m_intraCellBlobSeparation,
+                    CellDataArrays.IntraCellBlobSeparation,
                     newCellIndex,
                     m_blobs.CollideableBlobs[startBlobIndex + i],
                     bboxIndex);
