@@ -29,6 +29,8 @@ namespace GameWorld
 
         Colour[] m_baseColours;
 
+        UInt64 m_tickCount;
+
 
         public World(IRenderer renderer)
         {
@@ -87,6 +89,11 @@ namespace GameWorld
             //m_scene.RenderArrays.Add(m_bBoxRenderArrays);
             m_scene.RenderArrays.Add(m_springRenderArrays);
             m_scene.RenderArrays.Add(m_basisRenderArrays);
+
+            m_basisRenderArrays.Positions.Add(new Vector2d());
+            m_basisRenderArrays.Colours.Add(m_baseColours[5]);
+            m_basisRenderArrays.Positions.Add(new Vector2d());
+            m_basisRenderArrays.Colours.Add(m_baseColours[5]);
         }
 
         
@@ -130,10 +137,10 @@ namespace GameWorld
                 
                 if(theta != 0)
                 {
-                    AddSpring(theta, theta - 1, 0.0001f, 2.0f);
+                    AddSpring(theta, theta - 1, CellDataArrays.BoundarySpringStrength, 2.0f);
                 }
             }
-            AddSpring(rootBlobIndex, rootBlobIndex + CellDataArrays.BoundaryElementsInCell - 1, 0.0001f, 2.0f);
+            AddSpring(rootBlobIndex, rootBlobIndex + CellDataArrays.BoundaryElementsInCell - 1, CellDataArrays.BoundarySpringStrength, 2.0f);
         }
 
         void AddSpring(uint startIndex, uint endIndex, float stiffness, float restLength)
@@ -193,6 +200,8 @@ namespace GameWorld
                 {
                     int a = 0;
                 }
+
+                m_tickCount++;
             }
             //DoEnergeticEvents();
         }
@@ -527,13 +536,19 @@ namespace GameWorld
 
                 pos += m_blobs.Velocities[(int)i];
                 m_blobs.Positions[(int)i] = pos;
-                if (pos.X > 1024.0f)
+
+                float width = 1024.0f - ((float)m_tickCount / 100.0f);
+                width = Math.Max(width, 100.0f);
+                m_basisRenderArrays.Positions[0] = new Vector2d(width, 0.0f);
+                m_basisRenderArrays.Positions[1] = new Vector2d(-width, 0.0f);
+
+                if (pos.X > width)
                 {
-                    m_blobs.Positions[(int)i] = new Vector2d() { X = 1024.0f, Y = pos.Y };
+                    m_blobs.Positions[(int)i] = new Vector2d() { X = width, Y = pos.Y };
                 }
-                if (pos.X < -1024.0f)
+                if (pos.X < -width)
                 {
-                    m_blobs.Positions[(int)i] = new Vector2d() { X = -1024.0f, Y = pos.Y };
+                    m_blobs.Positions[(int)i] = new Vector2d() { X = -width, Y = pos.Y };
                 }
                 if (pos.Y > 768.0f)
                 {
