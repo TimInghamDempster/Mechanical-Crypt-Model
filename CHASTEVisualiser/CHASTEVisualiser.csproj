@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D6110BC8-597B-4E3F-8CE1-85F3F3EC21B8}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{567459ED-E2A2-4E03-A193-4C0FB54B345C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GameWorld</RootNamespace>
-    <AssemblyName>GameWorld</AssemblyName>
+    <RootNamespace>CHASTEVisualiser</RootNamespace>
+    <AssemblyName>CHASTEVisualiser</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -20,9 +21,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,6 +34,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,23 +42,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlobArrays.cs" />
-    <Compile Include="CellArrayCC.cs" />
-    <Compile Include="CellDataArrays.cs" />
-    <Compile Include="CellVisualiser.cs" />
-    <Compile Include="CryptCC.cs" />
-    <Compile Include="SpringArray.cs" />
-    <Compile Include="DirectionalSpringArray.cs" />
-    <Compile Include="World.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{346da34a-b864-4803-b0e9-811f09eb8bdb}</Project>
       <Name>Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\GameWorld\GameWorld.csproj">
+      <Project>{d6110bc8-597b-4e3f-8ce1-85f3f3ec21b8}</Project>
+      <Name>GameWorld</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SlimDX11Renderer\SlimDX11Renderer.csproj">
+      <Project>{10151b41-f2f8-4561-a52e-bc5399632a31}</Project>
+      <Name>SlimDX11Renderer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy $(ProjectDir)\Content $(TargetDir)\Content /s /i /d /y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

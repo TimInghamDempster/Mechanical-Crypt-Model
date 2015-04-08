@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptMechanical", "CryptMechanical.csproj", "{E47D4D9F-7D6A-4930-A2DA-9EC9B59EBD14}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{346DA34A-B864-4803-B0E9-811F09EB8BDB}"
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimDX11Renderer", "SlimDX11Renderer\SlimDX11Renderer.csproj", "{10151B41-F2F8-4561-A52E-BC5399632A31}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptCC", "CryptCC\CryptCC.csproj", "{F59F94A7-9BC3-4037-8F41-56C3545DD149}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CHASTEVisualiser", "CHASTEVisualiser\CHASTEVisualiser.csproj", "{567459ED-E2A2-4E03-A193-4C0FB54B345C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{F59F94A7-9BC3-4037-8F41-56C3545DD149}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F59F94A7-9BC3-4037-8F41-56C3545DD149}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F59F94A7-9BC3-4037-8F41-56C3545DD149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{567459ED-E2A2-4E03-A193-4C0FB54B345C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{567459ED-E2A2-4E03-A193-4C0FB54B345C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{567459ED-E2A2-4E03-A193-4C0FB54B345C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{567459ED-E2A2-4E03-A193-4C0FB54B345C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
