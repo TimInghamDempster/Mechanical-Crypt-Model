@@ -21,6 +21,7 @@ namespace GameWorld
         
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
+        const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 25.0f;
         const float m_separation = 1000.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
@@ -60,9 +61,8 @@ namespace GameWorld
             m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
             m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
 
-            m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptRadius, 0.0f), 0.0f, 100.0f, m_baseColours[0], 0);
+            m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptHeight, 0.0f), 0.0f, 100.0f, m_baseColours[0], 0);
             m_colourCounts[0]++;
-            //m_cells.AddCell(new Vector3d(0.0f, 0.0f, 0.0f));
 
         }
 
@@ -80,7 +80,7 @@ namespace GameWorld
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 Vector2d pos = new Vector2d(m_cells.Positions[i].X, m_cells.Positions[i].Z);
-                if (pos.Length() >= m_cryptRadius * 2.0)
+                if (pos.Length() >= m_cryptRadius * 2.0) // Needs a not hard-coded radius but I'm changing this in the next commit anyway - TID
                 {
                     m_colourCounts[m_cells.ColourIndices[i]]--;
 
@@ -159,28 +159,26 @@ namespace GameWorld
                 }
 
                 // Don't fall through the bottom of the crypt
-                if (pos.Y < -1.0f * m_cryptRadius)
+                if (pos.Y < -1.0f * m_cryptHeight)
                 {
-                    pos.Y = -1.0f * m_cryptRadius + 10.0f;
+                    pos.Y = -1.0f * m_cryptHeight + 10.0f;
                 }
 
-                if (pos.Y > m_cryptHeight - m_cryptRadius)
-                {
-                    float apatureRadius = m_cryptRadius * 2;
-                    
+                if (pos.Y > m_flutingRadius * -1.0f)
+                {                    
                     Vector2d virtualSphereDirection = new Vector2d(pos.X, pos.Z);
                     virtualSphereDirection /= virtualSphereDirection.Length();
-                    virtualSphereDirection *= apatureRadius;
+                    virtualSphereDirection *= m_cryptRadius + m_flutingRadius;
 
-                    Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_cryptHeight - m_cryptRadius, virtualSphereDirection.Y);
+                    Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_flutingRadius * -1.0f, virtualSphereDirection.Y);
 
                     Vector3d sphereRelativeCellPosition = pos - virtualSpherePosition;
                     sphereRelativeCellPosition /= sphereRelativeCellPosition.Length();
-                    sphereRelativeCellPosition *= apatureRadius - m_cryptRadius;
+                    sphereRelativeCellPosition *= m_flutingRadius;
 
                     pos = virtualSpherePosition + sphereRelativeCellPosition;
                 }
-                else if (pos.Y > 0.0f)
+                else if (pos.Y > (m_cryptHeight - m_cryptRadius) * -1.0f)
                 {
                     Vector2d final;
                     Vector2d pos2d = new Vector2d(pos.X, pos.Z);
@@ -192,8 +190,10 @@ namespace GameWorld
                 }
                 else
                 {
-                    Vector3d normalised = pos / pos.Length();
-                    pos = normalised * m_cryptRadius;
+                    Vector3d nicheCentre = new Vector3d(0.0f, (m_cryptHeight - m_cryptRadius) * -1.0f, 0.0f);
+                    Vector3d positionRelativeToNicheCentre = pos - nicheCentre;
+                    positionRelativeToNicheCentre = positionRelativeToNicheCentre / positionRelativeToNicheCentre.Length();
+                    pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
                 }
                 
                 m_cells.Positions[i] = pos;
@@ -219,9 +219,9 @@ namespace GameWorld
                         newPos.Y += 5.0f - ((float)m_random.NextDouble() * 10.0f);
                         newPos.Z += 5.0f - ((float)m_random.NextDouble() * 10.0f);
 
-                        if (newPos.Y < -1.0f * m_cryptRadius)
+                        if (newPos.Y < -1.0f * m_cryptHeight)
                         {
-                            newPos.Y = -1.0f * m_cryptRadius + 0.1f;
+                            newPos.Y = -1.0f * m_cryptHeight + 0.1f;
                         }
 
                         m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
@@ -237,9 +237,8 @@ namespace GameWorld
         {
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
-                float yPos = m_cells.Positions[i].Y;
-                float height = yPos + m_cryptRadius;
-                float wntAmount = (m_cryptHeight - height) / m_cryptHeight;
+                float height = m_cells.Positions[i].Y + m_cryptHeight;
+                float wntAmount = 1.0f - height / m_cryptHeight;
 
                 m_cells.BetaCatenin[i] += wntAmount - m_betaCateninConsumptionPerTimestep;
 

@@ -29,7 +29,7 @@ namespace CryptCC
 
             int camIndex = renderer.AddCamera(m_camera);
             renderer.SetCurrentCamera(camIndex);
-            m_camera.Locator.Move(0.0f,0.0f, 1000.0f);
+            m_camera.Locator.Move(0.0f,-1500.0f, 5000.0f);
 
             renderer.Run(funcs);
 
