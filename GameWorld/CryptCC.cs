@@ -79,8 +79,8 @@ namespace GameWorld
         {
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
-                var pos = m_cells.Positions[i];
-                if (pos.Y > m_cryptHeight - m_cryptRadius)
+                Vector2d pos = new Vector2d(m_cells.Positions[i].X, m_cells.Positions[i].Z);
+                if (pos.Length() >= m_cryptRadius * 2.0)
                 {
                     m_colourCounts[m_cells.ColourIndices[i]]--;
 
@@ -150,6 +150,7 @@ namespace GameWorld
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 var pos = m_cells.Positions[i];
+                //pos.Y += 20.0f;
 
                 // guard against 0 length vector division
                 if (pos.X == 0.0f && pos.Z == 0.0f)
@@ -163,7 +164,23 @@ namespace GameWorld
                     pos.Y = -1.0f * m_cryptRadius + 10.0f;
                 }
 
-                if (pos.Y > 0.0f)
+                if (pos.Y > m_cryptHeight - m_cryptRadius)
+                {
+                    float apatureRadius = m_cryptRadius * 2;
+                    
+                    Vector2d virtualSphereDirection = new Vector2d(pos.X, pos.Z);
+                    virtualSphereDirection /= virtualSphereDirection.Length();
+                    virtualSphereDirection *= apatureRadius;
+
+                    Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_cryptHeight - m_cryptRadius, virtualSphereDirection.Y);
+
+                    Vector3d sphereRelativeCellPosition = pos - virtualSpherePosition;
+                    sphereRelativeCellPosition /= sphereRelativeCellPosition.Length();
+                    sphereRelativeCellPosition *= apatureRadius - m_cryptRadius;
+
+                    pos = virtualSpherePosition + sphereRelativeCellPosition;
+                }
+                else if (pos.Y > 0.0f)
                 {
                     Vector2d final;
                     Vector2d pos2d = new Vector2d(pos.X, pos.Z);
