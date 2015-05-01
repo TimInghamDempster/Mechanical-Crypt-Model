@@ -71,7 +71,7 @@ namespace GameWorld
             UpdateWnt();
             DoGrowthPhase();
             DoCollisionAndMovement();
-            DeleteTopCells();
+            //DeleteTopCells();
             EnforceCryptWalls();
         }
 
@@ -164,8 +164,14 @@ namespace GameWorld
                     pos.Y = -1.0f * m_cryptHeight + 10.0f;
                 }
 
-                if (pos.Y > m_flutingRadius * -1.0f)
-                {                    
+                Vector2d pos2d = new Vector2d(pos.X, pos.Z);
+
+                if (pos2d.Length() > m_cryptRadius + m_flutingRadius)
+                {
+                    pos.Y = 0.0f;
+                }
+                else if (pos.Y > m_flutingRadius * -1.0f)
+                {
                     Vector2d virtualSphereDirection = new Vector2d(pos.X, pos.Z);
                     virtualSphereDirection /= virtualSphereDirection.Length();
                     virtualSphereDirection *= m_cryptRadius + m_flutingRadius;
@@ -181,7 +187,6 @@ namespace GameWorld
                 else if (pos.Y > (m_cryptHeight - m_cryptRadius) * -1.0f)
                 {
                     Vector2d final;
-                    Vector2d pos2d = new Vector2d(pos.X, pos.Z);
                     Vector2d normalised = pos2d / pos2d.Length();
                     final = normalised * m_cryptRadius;
 
