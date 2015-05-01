@@ -25,6 +25,7 @@ namespace GameWorld
         const float m_betaCateninRequirement = 25.0f;
         const float m_separation = 1000.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
+        const float m_anoikisProbabilityPerTimestep = 0.005f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
@@ -85,8 +86,26 @@ namespace GameWorld
             UpdateWnt();
             DoGrowthPhase();
             DoCollisionAndMovement();
+            DoAnoikis();
             //DeleteTopCells();
             EnforceCryptWalls();
+        }
+
+        void DoAnoikis()
+        {
+            for (int i = 0; i < m_cells.Positions.Count; i++)
+            {
+                Vector3d pos = m_cells.Positions[i];
+
+                if (pos.Y > -1.0f * m_flutingRadius)
+                {
+                    if (m_random.NextDouble() < m_anoikisProbabilityPerTimestep)
+                    {
+                        m_cells.Remove(i);
+                        i--;
+                    }
+                }
+            }
         }
 
         void DeleteTopCells()
