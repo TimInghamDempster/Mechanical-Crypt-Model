@@ -23,6 +23,7 @@ namespace GameWorld
         public List<float> GrowthStageCurrentTimes;
         public List<float> GrowthStageRequiredTimes;
         public List<int> ColourIndices;
+        public List<UInt32> CryptIds;
 
         public CellArrayCC()
         {
@@ -33,6 +34,7 @@ namespace GameWorld
             GrowthStageCurrentTimes = new List<float>();
             GrowthStageRequiredTimes = new List<float>();
             ColourIndices = new List<int>();
+            CryptIds = new List<UInt32>();
         }
 
         public void Remove(int index)
@@ -44,9 +46,10 @@ namespace GameWorld
             GrowthStageCurrentTimes.RemoveAt(index);
             ColourIndices.RemoveAt(index);
             GrowthStageRequiredTimes.RemoveAt(index);
+            CryptIds.RemoveAt(index);
         }
 
-        public void AddCell(Vector3d position, float wnt, float growthStageRequiredTime, Colour colour, int colourIndex)
+        public void AddCell(Vector3d position, float wnt, float growthStageRequiredTime, Colour colour, int colourIndex, UInt32 cryptIndex)
         {
             Positions.Add(position);
             Colours.Add(colour);
@@ -55,6 +58,7 @@ namespace GameWorld
             GrowthStageCurrentTimes.Add(0.0f);
             CycleStages.Add(CellCycleStage.G0);
             ColourIndices.Add(colourIndex);
+            CryptIds.Add(cryptIndex);
         }
     }
 }

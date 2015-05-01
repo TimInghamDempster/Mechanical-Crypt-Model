@@ -63,11 +63,20 @@ namespace GameWorld
             m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
             m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
 
-            m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptHeight, 0.0f), 0.0f, 100.0f, m_baseColours[0], 0);
+            m_cells.AddCell(new Vector3d(1600.0f, -1.0f * m_cryptHeight, 1600.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0);
+            m_cells.AddCell(new Vector3d(1600.0f, -1.0f * m_cryptHeight, -1600.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1);
+            m_cells.AddCell(new Vector3d(-1600.0f, -1.0f * m_cryptHeight, 1600.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2);
+            m_cells.AddCell(new Vector3d(-1600.0f, -1.0f * m_cryptHeight, -1600.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3);
             m_colourCounts[0]++;
+            m_colourCounts[1]++;
+            m_colourCounts[2]++;
+            m_colourCounts[3]++;
 
             m_cryptPositions = new List<Vector3d>();
-            m_cryptPositions.Add(new Vector3d());
+            m_cryptPositions.Add(new Vector3d(1600, 0, 1600));
+            m_cryptPositions.Add(new Vector3d(1600, 0, -1600));
+            m_cryptPositions.Add(new Vector3d(-1600, 0, 1600));
+            m_cryptPositions.Add(new Vector3d(-1600, 0, -1600));
         }
 
         public void Tick()
@@ -155,7 +164,7 @@ namespace GameWorld
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 var pos = m_cells.Positions[i];
-                pos -= m_cryptPositions[0];
+                pos -= m_cryptPositions[(int)m_cells.CryptIds[i]];
 
                 // guard against 0 length vector division
                 if (pos.X == 0.0f && pos.Z == 0.0f)
@@ -206,7 +215,7 @@ namespace GameWorld
                     pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
                 }
 
-                pos += m_cryptPositions[0];
+                pos += m_cryptPositions[(int)m_cells.CryptIds[i]];
                 m_cells.Positions[i] = pos;
             }
         }
@@ -237,7 +246,7 @@ namespace GameWorld
 
                         m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
 
-                        m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i]);
+                        m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i], m_cells.CryptIds[i]);
                         m_colourCounts[m_cells.ColourIndices[i]]++;
                     }
                 }
