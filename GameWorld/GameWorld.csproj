@@ -44,6 +44,7 @@
     <Compile Include="CellArrayCC.cs" />
     <Compile Include="CellDataArrays.cs" />
     <Compile Include="CellVisualiser.cs" />
+    <Compile Include="CryptArrayCC.cs" />
     <Compile Include="CryptCC.cs" />
     <Compile Include="SpringArray.cs" />
     <Compile Include="DirectionalSpringArray.cs" />

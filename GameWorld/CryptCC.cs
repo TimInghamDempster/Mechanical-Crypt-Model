@@ -16,6 +16,7 @@ namespace GameWorld
         RenderArrays3d m_renderArrays;
 
         CellArrayCC m_cells;
+        CryptArrayCC m_crypts;
         
         Random m_random;
         
@@ -25,11 +26,9 @@ namespace GameWorld
         const float m_betaCateninRequirement = 25.0f;
         const float m_separation = 1000.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
-        const float m_anoikisProbabilityPerTimestep = 0.005f;
+        const float m_anoikisProbabilityPerTimestep = 0.001f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
-
-        List<Vector3d> m_cryptPositions;
 
         public CryptCC(IRenderer renderer)
         {
@@ -64,31 +63,32 @@ namespace GameWorld
             m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
             m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
 
-            m_cells.AddCell(new Vector3d(1600.0f, -1.0f * m_cryptHeight, 1600.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0);
-            m_cells.AddCell(new Vector3d(1600.0f, -1.0f * m_cryptHeight, -1600.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1);
-            m_cells.AddCell(new Vector3d(-1600.0f, -1.0f * m_cryptHeight, 1600.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2);
-            m_cells.AddCell(new Vector3d(-1600.0f, -1.0f * m_cryptHeight, -1600.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3);
+            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0);
+            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1);
+            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2);
+            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3);
             m_colourCounts[0]++;
             m_colourCounts[1]++;
             m_colourCounts[2]++;
             m_colourCounts[3]++;
 
-            m_cryptPositions = new List<Vector3d>();
-            m_cryptPositions.Add(new Vector3d(1600, 0, 1600));
-            m_cryptPositions.Add(new Vector3d(1600, 0, -1600));
-            m_cryptPositions.Add(new Vector3d(-1600, 0, 1600));
-            m_cryptPositions.Add(new Vector3d(-1600, 0, -1600));
+            m_crypts = new CryptArrayCC();
+            m_crypts.Add(new Vector3d(1000, 0, 1000));
+            m_crypts.Add(new Vector3d(1000, 0, -1000));
+            m_crypts.Add(new Vector3d(-1000, 0, 1000));
+            m_crypts.Add(new Vector3d(-1000, 0, -1000));
         }
 
         public void Tick()
         {
-            //m_cryptPositions[0] = new Vector3d(m_cryptPositions[0].X + 2.0f, m_cryptPositions[0].Y, m_cryptPositions[0].Z);
+            m_crypts.PreTick();
             UpdateWnt();
             DoGrowthPhase();
             DoCollisionAndMovement();
             DoAnoikis();
             //DeleteTopCells();
             EnforceCryptWalls();
+            m_crypts.PostTick();
         }
 
         void DoAnoikis()
@@ -182,8 +182,9 @@ namespace GameWorld
         {
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
+                int cryptId = (int)m_cells.CryptIds[i];
                 var pos = m_cells.Positions[i];
-                pos -= m_cryptPositions[(int)m_cells.CryptIds[i]];
+                pos -= m_crypts.m_cryptPositions[cryptId];
 
                 // guard against 0 length vector division
                 if (pos.X == 0.0f && pos.Z == 0.0f)
@@ -234,7 +235,21 @@ namespace GameWorld
                     pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
                 }
 
-                pos += m_cryptPositions[(int)m_cells.CryptIds[i]];
+                pos += m_crypts.m_cryptPositions[cryptId];
+                Vector3d delta = m_cells.Positions[i] - pos;
+
+                m_crypts.m_cellularity[cryptId]++;
+                // Hack to stop explosive cell division events affecting crypt position
+                if (pos.Y > -1.0f * m_flutingRadius)
+                {
+                    m_crypts.m_forces[cryptId] += delta;
+                }
+
+                if (pos2d.Length() < m_cryptRadius + m_flutingRadius)
+                {
+                    pos += m_crypts.m_cryptDeltas[cryptId];
+                }
+
                 m_cells.Positions[i] = pos;
             }
         }
