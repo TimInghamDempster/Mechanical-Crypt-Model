@@ -28,6 +28,8 @@ namespace GameWorld
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
+        List<Vector3d> m_cryptPositions;
+
         public CryptCC(IRenderer renderer)
         {
             m_renderer = renderer;
@@ -64,10 +66,13 @@ namespace GameWorld
             m_cells.AddCell(new Vector3d(0.0f, -1.0f * m_cryptHeight, 0.0f), 0.0f, 100.0f, m_baseColours[0], 0);
             m_colourCounts[0]++;
 
+            m_cryptPositions = new List<Vector3d>();
+            m_cryptPositions.Add(new Vector3d());
         }
 
         public void Tick()
         {
+            //m_cryptPositions[0] = new Vector3d(m_cryptPositions[0].X + 2.0f, m_cryptPositions[0].Y, m_cryptPositions[0].Z);
             UpdateWnt();
             DoGrowthPhase();
             DoCollisionAndMovement();
@@ -150,7 +155,7 @@ namespace GameWorld
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 var pos = m_cells.Positions[i];
-                //pos.Y += 20.0f;
+                pos -= m_cryptPositions[0];
 
                 // guard against 0 length vector division
                 if (pos.X == 0.0f && pos.Z == 0.0f)
@@ -200,7 +205,8 @@ namespace GameWorld
                     positionRelativeToNicheCentre = positionRelativeToNicheCentre / positionRelativeToNicheCentre.Length();
                     pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
                 }
-                
+
+                pos += m_cryptPositions[0];
                 m_cells.Positions[i] = pos;
             }
         }
