@@ -26,7 +26,7 @@ namespace GameWorld
         const float m_betaCateninRequirement = 25.0f;
         const float m_separation = 1000.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
-        const float m_anoikisProbabilityPerTimestep = 0.001f;
+        const float m_anoikisProbabilityPerTimestep = 0.002f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
@@ -86,9 +86,7 @@ namespace GameWorld
             DoGrowthPhase();
             DoCollisionAndMovement();
             DoAnoikis();
-            //DeleteTopCells();
             EnforceCryptWalls();
-            m_crypts.PostTick();
         }
 
         void DoAnoikis()
@@ -171,8 +169,31 @@ namespace GameWorld
                             delta.Z = (float)m_random.NextDouble() - 0.5f;
                         }
 
-                        m_cells.Positions[i] += delta * restitution / separation;
-                        m_cells.Positions[j] -= delta * restitution / separation;
+                        int cryptId1 = (int)m_cells.CryptIds[i];
+                        int cryptId2 = (int)m_cells.CryptIds[j];
+
+                        Vector3d mCryptPos1 = m_crypts.m_cryptPositions[cryptId1]; 
+                        Vector3d mCryptPos2 = m_crypts.m_cryptPositions[cryptId2];
+
+                        Vector3d force = delta * restitution / separation;
+                        Vector3d cryptForce = force;
+                        cryptForce.Y = 0.0f;
+
+                        m_crypts.m_cellularity[cryptId1]++;
+                        m_crypts.m_cellularity[cryptId2]++;
+
+                        if ((mCryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
+                        {
+                            m_crypts.m_forces[cryptId1] += cryptForce;
+                        }
+
+                        if ((mCryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
+                        {
+                            m_crypts.m_forces[cryptId2] -= cryptForce;
+                        }
+
+                        m_cells.Positions[i] += force;
+                        m_cells.Positions[j] -= force;
                     }
                 }
             }
@@ -237,18 +258,6 @@ namespace GameWorld
 
                 pos += m_crypts.m_cryptPositions[cryptId];
                 Vector3d delta = m_cells.Positions[i] - pos;
-
-                m_crypts.m_cellularity[cryptId]++;
-                // Hack to stop explosive cell division events affecting crypt position
-                if (pos.Y > -1.0f * m_flutingRadius)
-                {
-                    m_crypts.m_forces[cryptId] += delta;
-                }
-
-                if (pos2d.Length() < m_cryptRadius + m_flutingRadius)
-                {
-                    pos += m_crypts.m_cryptDeltas[cryptId];
-                }
 
                 m_cells.Positions[i] = pos;
             }
