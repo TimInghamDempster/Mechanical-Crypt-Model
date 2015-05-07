@@ -10,6 +10,7 @@ namespace GameWorld
 {
     public enum CellCycleStage
     {
+        Child, // This cell is not yet independant and forms part of a growing cell before it divides.
         G0,
         G
     }
@@ -28,6 +29,9 @@ namespace GameWorld
         public List<int> ColourIndices;
         public List<UInt32> CryptIds;
         public List<int> ChildPointIndices;
+        public List<bool> Active;
+
+        List<int> m_freeIndices;
 
         public CellArrayCC()
         {
@@ -41,17 +45,9 @@ namespace GameWorld
             ColourIndices = new List<int>();
             CryptIds = new List<UInt32>();
             ChildPointIndices = new List<int>();
-        }
+            Active = new List<bool>();
 
-        public void Tick()
-        {
-            for (int i = 0; i < Radii.Count; i++)
-            {
-                if (Radii[i] < CryptCC.m_separation)
-                {
-                    Radii[i] += m_growthRate;
-                }
-            }
+            m_freeIndices = new List<int>();
         }
 
         public void Remove(int index)
@@ -68,18 +64,7 @@ namespace GameWorld
             ChildPointIndices.RemoveAt(index);
         }
 
-        public void AddCell(Vector3d position, float wnt, float growthStageRequiredTime, Colour colour, int colourIndex, UInt32 cryptIndex, float radius)
         {
-            Positions.Add(position);
-            Radii.Add(radius);
-            Colours.Add(colour);
-            BetaCatenin.Add(wnt);
-            GrowthStageRequiredTimes.Add(growthStageRequiredTime);
-            GrowthStageCurrentTimes.Add(0.0f);
-            CycleStages.Add(CellCycleStage.G0);
-            ColourIndices.Add(colourIndex);
-            CryptIds.Add(cryptIndex);
-            ChildPointIndices.Add(-1);
         }
     }
 }
