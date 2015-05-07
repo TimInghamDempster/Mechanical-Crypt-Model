@@ -16,7 +16,10 @@ namespace GameWorld
 
     public class CellArrayCC
     {
+        const float m_growthRate = 10.0f;
+
         public List<Vector3d> Positions;
+        public List<float> Radii;
         public List<Colour> Colours;
         public List<float> BetaCatenin;
         public List<CellCycleStage> CycleStages;
@@ -24,10 +27,12 @@ namespace GameWorld
         public List<float> GrowthStageRequiredTimes;
         public List<int> ColourIndices;
         public List<UInt32> CryptIds;
+        public List<int> ChildPointIndices;
 
         public CellArrayCC()
         {
             Positions = new List<Vector3d>();
+            Radii = new List<float>();
             Colours = new List<Colour>();
             BetaCatenin = new List<float>();
             CycleStages = new List<CellCycleStage>();
@@ -35,11 +40,24 @@ namespace GameWorld
             GrowthStageRequiredTimes = new List<float>();
             ColourIndices = new List<int>();
             CryptIds = new List<UInt32>();
+            ChildPointIndices = new List<int>();
+        }
+
+        public void Tick()
+        {
+            for (int i = 0; i < Radii.Count; i++)
+            {
+                if (Radii[i] < CryptCC.m_separation)
+                {
+                    Radii[i] += m_growthRate;
+                }
+            }
         }
 
         public void Remove(int index)
         {
             Positions.RemoveAt(index);
+            Radii.RemoveAt(index);
             Colours.RemoveAt(index);
             BetaCatenin.RemoveAt(index);
             CycleStages.RemoveAt(index);
@@ -47,11 +65,13 @@ namespace GameWorld
             ColourIndices.RemoveAt(index);
             GrowthStageRequiredTimes.RemoveAt(index);
             CryptIds.RemoveAt(index);
+            ChildPointIndices.RemoveAt(index);
         }
 
-        public void AddCell(Vector3d position, float wnt, float growthStageRequiredTime, Colour colour, int colourIndex, UInt32 cryptIndex)
+        public void AddCell(Vector3d position, float wnt, float growthStageRequiredTime, Colour colour, int colourIndex, UInt32 cryptIndex, float radius)
         {
             Positions.Add(position);
+            Radii.Add(radius);
             Colours.Add(colour);
             BetaCatenin.Add(wnt);
             GrowthStageRequiredTimes.Add(growthStageRequiredTime);
@@ -59,6 +79,7 @@ namespace GameWorld
             CycleStages.Add(CellCycleStage.G0);
             ColourIndices.Add(colourIndex);
             CryptIds.Add(cryptIndex);
+            ChildPointIndices.Add(-1);
         }
     }
 }

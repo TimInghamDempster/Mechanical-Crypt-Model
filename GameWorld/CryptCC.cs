@@ -24,7 +24,7 @@ namespace GameWorld
         const float m_cryptHeight = 3000.0f;
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 25.0f;
-        const float m_separation = 1000.0f;
+        public const float m_separation = 1000.0f / 2.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         Colour[] m_baseColours;
@@ -63,10 +63,10 @@ namespace GameWorld
             m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
             m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
 
-            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0);
-            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1);
-            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2);
-            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3);
+            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0, m_separation);
+            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1, m_separation);
+            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2, m_separation);
+            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3, m_separation);
             m_colourCounts[0]++;
             m_colourCounts[1]++;
             m_colourCounts[2]++;
@@ -82,6 +82,7 @@ namespace GameWorld
         public void Tick()
         {
             m_crypts.PreTick();
+            m_cells.Tick();
             UpdateWnt();
             DoGrowthPhase();
             DoCollisionAndMovement();
@@ -150,16 +151,18 @@ namespace GameWorld
         {
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
-                for (int j = i; j < m_cells.Positions.Count; j++)
+                for (int j = i + 1; j < m_cells.Positions.Count; j++)
                 {
                     var outerPos = m_cells.Positions[i];
                     var innerPos = m_cells.Positions[j];
                     var delta = outerPos - innerPos;
                     var separation = delta.Length();
 
-                    if (separation < m_separation * 1.1f)
+                    float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
+
+                    if (separation < targetSeparation)// m_cells.Radii[i] + m_cells.Radii[j])
                     {
-                        float restitution = m_separation - separation;
+                        float restitution = targetSeparation - separation;
                         restitution /= 100.0f;
                         if (separation < 0.1f)
                         {
@@ -278,9 +281,9 @@ namespace GameWorld
                         m_cells.BetaCatenin[i] = 0.0f;
 
                         Vector3d newPos = m_cells.Positions[i];
-                        newPos.X += 5.0f - ((float)m_random.NextDouble() * 10.0f);
-                        newPos.Y += 5.0f - ((float)m_random.NextDouble() * 10.0f);
-                        newPos.Z += 5.0f - ((float)m_random.NextDouble() * 10.0f);
+                        newPos.X += 50.0f - ((float)m_random.NextDouble() * 100.0f);
+                        newPos.Y += 50.0f - ((float)m_random.NextDouble() * 100.0f);
+                        newPos.Z += 50.0f - ((float)m_random.NextDouble() * 100.0f);
 
                         if (newPos.Y < -1.0f * m_cryptHeight)
                         {
@@ -289,7 +292,7 @@ namespace GameWorld
 
                         m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
 
-                        m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i], m_cells.CryptIds[i]);
+                        m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i], m_cells.CryptIds[i], 0.0f);
                         m_colourCounts[m_cells.ColourIndices[i]]++;
                     }
                 }
