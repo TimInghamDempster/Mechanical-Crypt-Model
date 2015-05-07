@@ -23,10 +23,11 @@ namespace GameWorld
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
         const float m_flutingRadius = 500.0f;
-        const float m_betaCateninRequirement = 25.0f;
+        const float m_betaCateninRequirement = 200.0f;
         public const float m_separation = 500.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
+        const float m_membraneSeparationToTriggerAnoikis = 10.0f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
@@ -95,7 +96,12 @@ namespace GameWorld
             {
                 if (m_cells.Active[i])
                 {
-                    Vector3d pos = m_cells.Positions[i];
+                    if (m_cells.OffMembraneDistance[i] > m_membraneSeparationToTriggerAnoikis)
+                    {
+                        m_cells.Remove(i);
+                    }
+                    // Fixed probability rule.
+                    /*Vector3d pos = m_cells.Positions[i];
 
                     if (pos.Y > -1.0f * m_flutingRadius)
                     {
@@ -104,7 +110,7 @@ namespace GameWorld
                             m_cells.Remove(i);
                             i--;
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -116,6 +122,7 @@ namespace GameWorld
                 if (m_cells.Active[i])
                 {
                     Vector2d pos = new Vector2d(m_cells.Positions[i].X, m_cells.Positions[i].Z);
+                    if (pos.Length() >= m_cryptRadius + m_flutingRadius)
                     {
                         m_colourCounts[m_cells.ColourIndices[i]]--;
 
@@ -234,6 +241,8 @@ namespace GameWorld
                     var pos = m_cells.Positions[i];
                     pos -= m_crypts.m_cryptPositions[cryptId];
 
+                    bool isAboveBasementMembrane = false;
+
                     // guard against 0 length vector division
                     if (pos.X == 0.0f && pos.Z == 0.0f)
                     {
@@ -261,6 +270,7 @@ namespace GameWorld
                         Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_flutingRadius * -1.0f, virtualSphereDirection.Y);
 
                         Vector3d sphereRelativeCellPosition = pos - virtualSpherePosition;
+                        isAboveBasementMembrane = sphereRelativeCellPosition.Length() > m_flutingRadius;
                         sphereRelativeCellPosition /= sphereRelativeCellPosition.Length();
                         sphereRelativeCellPosition *= m_flutingRadius;
 
@@ -272,6 +282,8 @@ namespace GameWorld
                         Vector2d normalised = pos2d / pos2d.Length();
                         final = normalised * m_cryptRadius;
 
+                        isAboveBasementMembrane = pos2d.Length() < m_cryptRadius;
+
                         pos.X = final.X;
                         pos.Z = final.Y;
                     }
@@ -279,12 +291,20 @@ namespace GameWorld
                     {
                         Vector3d nicheCentre = new Vector3d(0.0f, (m_cryptHeight - m_cryptRadius) * -1.0f, 0.0f);
                         Vector3d positionRelativeToNicheCentre = pos - nicheCentre;
+                        isAboveBasementMembrane = positionRelativeToNicheCentre.Length() < m_cryptRadius;
                         positionRelativeToNicheCentre = positionRelativeToNicheCentre / positionRelativeToNicheCentre.Length();
                         pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
                     }
 
                     pos += m_crypts.m_cryptPositions[cryptId];
                     Vector3d delta = m_cells.Positions[i] - pos;
+
+                    m_cells.OffMembraneDistance[i] = delta.Length();
+
+                    if (isAboveBasementMembrane == false)
+                    {
+                        m_cells.OffMembraneDistance[i] *= -1.0f;
+                    }
 
                     m_cells.Positions[i] = pos;
                 }
