@@ -23,7 +23,7 @@ namespace GameWorld
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
         const float m_flutingRadius = 500.0f;
-        const float m_betaCateninRequirement = 200.0f;
+        const float m_betaCateninRequirement = 20.0f;
         public const float m_separation = 500.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
@@ -259,6 +259,10 @@ namespace GameWorld
 
                     if (pos2d.Length() > m_cryptRadius + m_flutingRadius)
                     {
+                        if (pos.Y > 0.0f)
+                        {
+                            isAboveBasementMembrane = true;
+                        }
                         pos.Y = 0.0f;
                     }
                     else if (pos.Y > m_flutingRadius * -1.0f)
