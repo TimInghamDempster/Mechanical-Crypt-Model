@@ -28,6 +28,8 @@ namespace GameWorld
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         const float m_membraneSeparationToTriggerAnoikis = 10.0f;
+        Vector2d m_colonBoundary = new Vector2d(3000.0f, 3000.0f);
+        const float m_colonBoundaryRepulsionFactor = 0.3f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
@@ -88,6 +90,7 @@ namespace GameWorld
             DoCollisionAndMovement();
             DoAnoikis();
             EnforceCryptWalls();
+            EnforceColonBoundary();
         }
 
         void DoAnoikis()
@@ -227,6 +230,44 @@ namespace GameWorld
                             }
                         }
                     }
+                }
+            }
+        }
+
+        void EnforceColonBoundary()
+        {
+            for (int i = 0; i < m_cells.Positions.Count; i++)
+            {
+                if (m_cells.Active[i])
+                {
+                    var pos = m_cells.Positions[i];
+
+                    if (pos.X > m_colonBoundary.X)
+                    {
+                        float delta = pos.X - m_colonBoundary.X;
+                        delta *= m_colonBoundaryRepulsionFactor;
+                        pos.X -= delta;
+                    }
+                    if (pos.X < (-1.0f * m_colonBoundary.X))
+                    {
+                        float delta = pos.X - (-1.0f * m_colonBoundary.X);
+                        delta *= m_colonBoundaryRepulsionFactor;
+                        pos.X -= delta;
+                    }
+                    if (pos.Z > m_colonBoundary.Y)
+                    {
+                        float delta = pos.Z - m_colonBoundary.Y;
+                        delta *= m_colonBoundaryRepulsionFactor;
+                        pos.Z -= delta;
+                    }
+                    if (pos.Z < (-1.0f * m_colonBoundary.Y))
+                    {
+                        float delta = pos.Z - (-1.0f * m_colonBoundary.Y);
+                        delta *= m_colonBoundaryRepulsionFactor;
+                        pos.Z -= delta;
+                    }
+
+                    m_cells.Positions[i] = pos;
                 }
             }
         }
