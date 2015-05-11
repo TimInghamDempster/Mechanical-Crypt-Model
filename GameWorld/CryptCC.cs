@@ -27,9 +27,12 @@ namespace GameWorld
         public const float m_separation = 500.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
-        const float m_membraneSeparationToTriggerAnoikis = 10.0f;
+        const float m_membraneSeparationToTriggerAnoikis = 200.0f;
+        const float m_offMembraneRestorationFactor = 0.1f;
+        const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(3000.0f, 3000.0f);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
+        const float m_cellStiffness = 0.01f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
 
@@ -193,7 +196,7 @@ namespace GameWorld
                             if (separation < targetSeparation)
                             {
                                 float restitution = targetSeparation - separation;
-                                restitution /= 100.0f;
+                                restitution *= m_cellStiffness;
                                 if (separation < 0.1f)
                                 {
                                     separation = 0.1f;
@@ -349,9 +352,14 @@ namespace GameWorld
                     if (isAboveBasementMembrane == false)
                     {
                         m_cells.OffMembraneDistance[i] *= -1.0f;
+                        delta *= m_stromalRestorationFactor;
+                    }
+                    else
+                    {
+                        delta *= m_offMembraneRestorationFactor;
                     }
 
-                    m_cells.Positions[i] = pos;
+                    m_cells.Positions[i] -= delta;
                 }
             }
         }
