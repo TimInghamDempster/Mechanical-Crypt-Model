@@ -10,6 +10,7 @@ namespace Core
     {
         public List<Vector3d> Positions;
         public List<Colour> Colours;
+        public List<bool> Visible; // Assumes all are true if null
 
         public RenderArrays3d()
         {

@@ -239,6 +239,13 @@ namespace SlimDX11Renderer
                 {
                     for (int i = 0; i < rArrays.Colours.Count; i++)
                     {
+                        if (rArrays.Visible != null)
+                        {
+                            if (rArrays.Visible[i] == false)
+                            {
+                                continue;
+                            }
+                        }
                         var colour = rArrays.Colours[i];
                         var pos = rArrays.Positions[i];
 

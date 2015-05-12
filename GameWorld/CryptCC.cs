@@ -54,6 +54,7 @@ namespace GameWorld
             m_renderArrays = new RenderArrays3d();
             m_renderArrays.Positions = m_cells.Positions;
             m_renderArrays.Colours = m_cells.Colours;
+            m_renderArrays.Visible = m_cells.Active;
 
             m_scene.CreateCamera();
             m_scene.SetCurrentCamera(0);
