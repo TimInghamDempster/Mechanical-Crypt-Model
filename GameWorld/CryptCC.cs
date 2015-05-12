@@ -37,6 +37,11 @@ namespace GameWorld
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
+        const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.5f;
+        const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
+        const float m_basicG0StemBetaCateninRequirement = 300.0f;
+        const float m_basicG0ProliferationBetaCateninRequirement = 50.0f;
+
         public CryptCC(IRenderer renderer)
         {
             m_renderer = renderer;
@@ -93,7 +98,8 @@ namespace GameWorld
             for (int i = 0; i < 1; i++)
             {
                 m_crypts.PreTick();
-                UpdateWnt();
+                //UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
+                DoBasicG0Phase(); // Basic phenomenological G0 model.
                 DoGrowthPhase();
                 AssignCellsToGrid();
                 DoCollisionAndMovement();
@@ -433,6 +439,32 @@ namespace GameWorld
             }
         }
 
+        void DoBasicG0Phase()
+        {
+            for (int i = 0; i < m_cells.Positions.Count; i++)
+            {
+                if (m_cells.Active[i] && m_cells.CycleStages[i] == CellCycleStage.G0)
+                {
+                    m_cells.BetaCatenin[i]++;
+                    
+                    if (m_cells.Positions[i].Y < m_basicG0StemBoundary)
+                    {
+                        if (m_cells.BetaCatenin[i] > m_basicG0StemBetaCateninRequirement)
+                        {
+                            EnterG1(i);
+                        }
+                    }
+                    if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
+                    {
+                        if (m_cells.BetaCatenin[i] > m_basicG0ProliferationBetaCateninRequirement)
+                        {
+                            EnterG1(i);
+                        }
+                    }
+                }
+            }
+        }
+
         void UpdateWnt()
         {
             for (int i = 0; i < m_cells.Positions.Count; i++)
@@ -451,27 +483,32 @@ namespace GameWorld
 
                     if (m_cells.BetaCatenin[i] > m_betaCateninRequirement)
                     {
-                        m_cells.CycleStages[i] = CellCycleStage.G;
-                        m_cells.Colours[i] = new Colour() { A = 1.0f, R = 1.0f, G = 0.0f, B = 1.0f };
-
-                        Vector3d newPos = m_cells.Positions[i];
-                        newPos.X += 5.0f - ((float)m_random.NextDouble() * 10.0f);
-                        newPos.Y += 5.0f - ((float)m_random.NextDouble() * 10.0f);
-                        newPos.Z += 5.0f - ((float)m_random.NextDouble() * 10.0f);
-
-                        if (newPos.Y < -1.0f * m_cryptHeight)
-                        {
-                            newPos.Y = -1.0f * m_cryptHeight + 0.1f;
-                        }
-
-                        int childId = m_cells.AddCell(newPos, m_cells.BetaCatenin[i], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[i], m_cells.ColourIndices[i], m_cells.CryptIds[i], m_separation, CellCycleStage.Child);
-                        m_cells.CycleStages[childId] = CellCycleStage.Child;
-                        m_colourCounts[m_cells.ColourIndices[i]]++;
-
-                        m_cells.ChildPointIndices[i] = childId;
+                        EnterG1(i);
                     }
                 }
             }
+        }
+
+        void EnterG1(int cellId)
+        {
+            m_cells.CycleStages[cellId] = CellCycleStage.G;
+            m_cells.Colours[cellId] = new Colour() { A = 1.0f, R = 1.0f, G = 0.0f, B = 1.0f };
+
+            Vector3d newPos = m_cells.Positions[cellId];
+            newPos.X += 5.0f - ((float)m_random.NextDouble() * 10.0f);
+            newPos.Y += 5.0f - ((float)m_random.NextDouble() * 10.0f);
+            newPos.Z += 5.0f - ((float)m_random.NextDouble() * 10.0f);
+
+            if (newPos.Y < -1.0f * m_cryptHeight)
+            {
+                newPos.Y = -1.0f * m_cryptHeight + 0.1f;
+            }
+
+            int childId = m_cells.AddCell(newPos, m_cells.BetaCatenin[cellId], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_separation, CellCycleStage.Child);
+            m_cells.CycleStages[childId] = CellCycleStage.Child;
+            m_colourCounts[m_cells.ColourIndices[cellId]]++;
+
+            m_cells.ChildPointIndices[cellId] = childId;
         }
     }
 }
