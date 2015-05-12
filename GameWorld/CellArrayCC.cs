@@ -31,6 +31,7 @@ namespace GameWorld
         public List<int> ChildPointIndices;
         public List<bool> Active;
         public List<float> OffMembraneDistance;
+        public List<int> GridIndices;
 
         List<int> m_freeIndices;
 
@@ -48,6 +49,7 @@ namespace GameWorld
             ChildPointIndices = new List<int>();
             Active = new List<bool>();
             OffMembraneDistance = new List<float>();
+            GridIndices = new List<int>();
 
             m_freeIndices = new List<int>();
         }
@@ -78,6 +80,7 @@ namespace GameWorld
                 ChildPointIndices[index] = -1;
                 Active[index] = true;
                 OffMembraneDistance[index] = 0.0f;
+                GridIndices[index] = -1;
                 return index;
             }
             else
@@ -94,6 +97,7 @@ namespace GameWorld
                 ChildPointIndices.Add(-1);
                 Active.Add(true);
                 OffMembraneDistance.Add(0.0f);
+                GridIndices.Add(-1);
                 return Active.Count - 1;
             }
         }

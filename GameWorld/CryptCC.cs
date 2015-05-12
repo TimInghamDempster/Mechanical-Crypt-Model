@@ -35,6 +35,7 @@ namespace GameWorld
         const float m_cellStiffness = 0.01f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
+        UniformIndexGrid m_grid;
 
         public CryptCC(IRenderer renderer)
         {
@@ -83,17 +84,45 @@ namespace GameWorld
             m_crypts.Add(new Vector3d(1000, 0, -1000));
             m_crypts.Add(new Vector3d(-1000, 0, 1000));
             m_crypts.Add(new Vector3d(-1000, 0, -1000));
+
+            m_grid = new UniformIndexGrid(10, 10, 10, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
         public void Tick()
         {
-            m_crypts.PreTick();
-            UpdateWnt();
-            DoGrowthPhase();
-            DoCollisionAndMovement();
-            DoAnoikis();
-            EnforceCryptWalls();
-            EnforceColonBoundary();
+            for (int i = 0; i < 1; i++)
+            {
+                m_crypts.PreTick();
+                UpdateWnt();
+                DoGrowthPhase();
+                AssignCellsToGrid();
+                DoCollisionAndMovement();
+                DoAnoikis();
+                EnforceCryptWalls();
+                EnforceColonBoundary();
+            }
+        }
+
+        void AssignCellsToGrid()
+        {
+            for (int i = 0; i < m_cells.Positions.Count; i++)
+            {
+                if (m_cells.Active[i])
+                {
+                    int box = m_grid.CalcBox(m_cells.Positions[i]);
+                    if (m_cells.GridIndices[i] == -1)
+                    {
+                        m_grid.m_indices[box].Add(i);
+                        m_cells.GridIndices[i] = box;
+                    }
+                    if (m_cells.GridIndices[i] != box)
+                    {
+                        m_grid.m_indices[m_cells.GridIndices[i]].Remove(i);
+                        m_grid.m_indices[box].Add(i);
+                        m_cells.GridIndices[i] = box;
+                    }
+                }
+            }
         }
 
         void DoAnoikis()
@@ -166,70 +195,80 @@ namespace GameWorld
 
         void DoCollisionAndMovement()
         {
+            int capacity = m_grid.CalcNumCollisionBoxesInCentre(2.0f * m_separation);
+            List<int> surroundingBoxes = new List<int>(capacity);
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 if (m_cells.Active[i])
                 {
-                    for (int j = i + 1; j < m_cells.Positions.Count; j++)
+                    m_grid.GetCollisionBoxes(m_cells.Positions[i], 2.0f * m_separation, surroundingBoxes);
                     {
-                        if (m_cells.Active[j])
+                        for (int box = 0; box < surroundingBoxes.Count; box++)
                         {
-                            var outerPos = m_cells.Positions[i];
-                            var innerPos = m_cells.Positions[j];
-                            var delta = outerPos - innerPos;
-                            var separation = delta.Length();
-
-
-                            float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
-
-                            if (j == m_cells.ChildPointIndices[i])
+                            List<int> cellsInBox = m_grid.m_indices[surroundingBoxes[box]];
+                            for (int cell = 0; cell < cellsInBox.Count; cell++)
                             {
-                                float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
-                                targetSeparation *= growthFactor;
-                            }
-                            else if (i == m_cells.ChildPointIndices[j])
-                            {
-                                float growthFactor = m_cells.GrowthStageCurrentTimes[j] / m_cells.GrowthStageRequiredTimes[j];
-                                targetSeparation *= growthFactor;
-                            }
-
-                            if (separation < targetSeparation)
-                            {
-                                float restitution = targetSeparation - separation;
-                                restitution *= m_cellStiffness;
-                                if (separation < 0.1f)
+                                int j = cellsInBox[cell];
+                                if (m_cells.Active[j])
                                 {
-                                    separation = 0.1f;
-                                    delta.X = (float)m_random.NextDouble() - 0.5f;
-                                    delta.Y = (float)m_random.NextDouble() - 0.5f;
-                                    delta.Z = (float)m_random.NextDouble() - 0.5f;
+                                    var outerPos = m_cells.Positions[i];
+                                    var innerPos = m_cells.Positions[j];
+                                    var delta = outerPos - innerPos;
+                                    var separation = delta.Length();
+
+
+                                    float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
+
+                                    if (j == m_cells.ChildPointIndices[i])
+                                    {
+                                        float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
+                                        targetSeparation *= growthFactor;
+                                    }
+                                    else if (i == m_cells.ChildPointIndices[j])
+                                    {
+                                        float growthFactor = m_cells.GrowthStageCurrentTimes[j] / m_cells.GrowthStageRequiredTimes[j];
+                                        targetSeparation *= growthFactor;
+                                    }
+
+                                    if (separation < targetSeparation)
+                                    {
+                                        float restitution = targetSeparation - separation;
+                                        restitution *= m_cellStiffness;
+                                        if (separation < 0.1f)
+                                        {
+                                            separation = 0.1f;
+                                            delta.X = (float)m_random.NextDouble() - 0.5f;
+                                            delta.Y = (float)m_random.NextDouble() - 0.5f;
+                                            delta.Z = (float)m_random.NextDouble() - 0.5f;
+                                        }
+
+                                        int cryptId1 = (int)m_cells.CryptIds[i];
+                                        int cryptId2 = (int)m_cells.CryptIds[j];
+
+                                        Vector3d mCryptPos1 = m_crypts.m_cryptPositions[cryptId1];
+                                        Vector3d mCryptPos2 = m_crypts.m_cryptPositions[cryptId2];
+
+                                        Vector3d force = delta * restitution / separation;
+                                        Vector3d cryptForce = force;
+                                        cryptForce.Y = 0.0f;
+
+                                        m_crypts.m_cellularity[cryptId1]++;
+                                        m_crypts.m_cellularity[cryptId2]++;
+
+                                        if ((mCryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
+                                        {
+                                            m_crypts.m_forces[cryptId1] += cryptForce;
+                                        }
+
+                                        if ((mCryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
+                                        {
+                                            m_crypts.m_forces[cryptId2] -= cryptForce;
+                                        }
+
+                                        m_cells.Positions[i] += force;
+                                        m_cells.Positions[j] -= force;
+                                    }
                                 }
-
-                                int cryptId1 = (int)m_cells.CryptIds[i];
-                                int cryptId2 = (int)m_cells.CryptIds[j];
-
-                                Vector3d mCryptPos1 = m_crypts.m_cryptPositions[cryptId1];
-                                Vector3d mCryptPos2 = m_crypts.m_cryptPositions[cryptId2];
-
-                                Vector3d force = delta * restitution / separation;
-                                Vector3d cryptForce = force;
-                                cryptForce.Y = 0.0f;
-
-                                m_crypts.m_cellularity[cryptId1]++;
-                                m_crypts.m_cellularity[cryptId2]++;
-
-                                if ((mCryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
-                                {
-                                    m_crypts.m_forces[cryptId1] += cryptForce;
-                                }
-
-                                if ((mCryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
-                                {
-                                    m_crypts.m_forces[cryptId2] -= cryptForce;
-                                }
-
-                                m_cells.Positions[i] += force;
-                                m_cells.Positions[j] -= force;
                             }
                         }
                     }
