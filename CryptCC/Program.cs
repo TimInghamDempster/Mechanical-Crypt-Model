@@ -19,7 +19,7 @@ namespace CryptCC
             SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
             m_crypt = new GameWorld.CryptCC(renderer);
 
-            m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 10000.0f);
+            m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 100000.0f);
 
             Input = new SlimDX11Renderer.InputHandler();
 

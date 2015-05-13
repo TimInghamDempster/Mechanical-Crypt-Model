@@ -19,6 +19,10 @@ namespace GameWorld
         CryptArrayCC m_crypts;
         
         Random m_random;
+
+        const int m_numCryptsPerSide = 4;
+        const float initialCryptSeparation = 2000.0f;
+        const float fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * initialCryptSeparation + 1000.0f;
         
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
@@ -30,7 +34,7 @@ namespace GameWorld
         const float m_membraneSeparationToTriggerAnoikis = 200.0f;
         const float m_offMembraneRestorationFactor = 0.1f;
         const float m_stromalRestorationFactor = 0.3f;
-        Vector2d m_colonBoundary = new Vector2d(3000.0f, 3000.0f);
+        Vector2d m_colonBoundary = new Vector2d(fieldHalfSize, fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
         const float m_cellStiffness = 0.01f;
         Colour[] m_baseColours;
@@ -76,22 +80,28 @@ namespace GameWorld
             m_baseColours[09] = new Colour() { R = 0.5f, G = 1.0f, B = 1.0f, A = 0.0f };
             m_baseColours[10] = new Colour() { R = 1.0f, G = 0.5f, B = 1.0f, A = 0.0f };
 
-            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[0], 0, 0, m_separation, CellCycleStage.G0);
-            m_cells.AddCell(new Vector3d(1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[1], 1, 1, m_separation, CellCycleStage.G0);
-            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, 1000.0f), 0.0f, 100.0f, m_baseColours[2], 2, 2, m_separation, CellCycleStage.G0);
-            m_cells.AddCell(new Vector3d(-1000.0f, -1.0f * m_cryptHeight, -1000.0f), 0.0f, 100.0f, m_baseColours[3], 3, 3, m_separation, CellCycleStage.G0);
-            m_colourCounts[0]++;
-            m_colourCounts[1]++;
-            m_colourCounts[2]++;
-            m_colourCounts[3]++;
-
             m_crypts = new CryptArrayCC();
-            m_crypts.Add(new Vector3d(1000, 0, 1000));
-            m_crypts.Add(new Vector3d(1000, 0, -1000));
-            m_crypts.Add(new Vector3d(-1000, 0, 1000));
-            m_crypts.Add(new Vector3d(-1000, 0, -1000));
 
-            m_grid = new UniformIndexGrid(10, 10, 10, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
+            float centeringOffset = fieldHalfSize - 2000f;
+
+            for (int y = 0; y < m_numCryptsPerSide; y++)
+            {
+                for (int x = 0; x < m_numCryptsPerSide; x++)
+                {
+                    int colourIndex =(x + y * m_numCryptsPerSide) % m_baseColours.Count();
+                    m_cells.AddCell(new Vector3d(x * initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * initialCryptSeparation - centeringOffset),
+                        0.0f,
+                        100.0f,
+                        m_baseColours[colourIndex],
+                        colourIndex,
+                        (UInt32)(x + y * m_numCryptsPerSide),
+                        m_separation,
+                        CellCycleStage.G0);
+                    m_crypts.Add(new Vector3d(x * initialCryptSeparation - centeringOffset, 0.0f, y * initialCryptSeparation - centeringOffset));
+                }
+            }
+
+            m_grid = new UniformIndexGrid(100, 10, 100, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
         public void Tick()
