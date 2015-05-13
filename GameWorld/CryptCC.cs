@@ -20,9 +20,9 @@ namespace GameWorld
         
         Random m_random;
 
-        const int m_numCryptsPerSide = 4;
-        const float initialCryptSeparation = 2000.0f;
-        const float fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * initialCryptSeparation + 1000.0f;
+        const int m_numCryptsPerSide = 2;
+        const float m_initialCryptSeparation = 2000.0f;
+        const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
         
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
@@ -34,7 +34,7 @@ namespace GameWorld
         const float m_membraneSeparationToTriggerAnoikis = 200.0f;
         const float m_offMembraneRestorationFactor = 0.1f;
         const float m_stromalRestorationFactor = 0.3f;
-        Vector2d m_colonBoundary = new Vector2d(fieldHalfSize, fieldHalfSize);
+        Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
         const float m_cellStiffness = 0.01f;
         Colour[] m_baseColours;
@@ -43,8 +43,8 @@ namespace GameWorld
 
         const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.5f;
         const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
-        const float m_basicG0StemBetaCateninRequirement = 300.0f;
-        const float m_basicG0ProliferationBetaCateninRequirement = 50.0f;
+        const float m_basicG0StemBetaCateninRequirement = 500.0f;
+        const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
 
         public CryptCC(IRenderer renderer)
         {
@@ -82,14 +82,14 @@ namespace GameWorld
 
             m_crypts = new CryptArrayCC();
 
-            float centeringOffset = fieldHalfSize - 2000f;
+            float centeringOffset = m_fieldHalfSize - 2000f;
 
             for (int y = 0; y < m_numCryptsPerSide; y++)
             {
                 for (int x = 0; x < m_numCryptsPerSide; x++)
                 {
                     int colourIndex =(x + y * m_numCryptsPerSide) % m_baseColours.Count();
-                    m_cells.AddCell(new Vector3d(x * initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * initialCryptSeparation - centeringOffset),
+                    m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * m_initialCryptSeparation - centeringOffset),
                         0.0f,
                         100.0f,
                         m_baseColours[colourIndex],
@@ -97,16 +97,16 @@ namespace GameWorld
                         (UInt32)(x + y * m_numCryptsPerSide),
                         m_separation,
                         CellCycleStage.G0);
-                    m_crypts.Add(new Vector3d(x * initialCryptSeparation - centeringOffset, 0.0f, y * initialCryptSeparation - centeringOffset));
+                    m_crypts.Add(new Vector3d(x * m_initialCryptSeparation - centeringOffset, 0.0f, y * m_initialCryptSeparation - centeringOffset));
                 }
             }
 
-            m_grid = new UniformIndexGrid(100, 10, 100, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
+            m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
         public void Tick()
         {
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 2; i++)
             {
                 m_crypts.PreTick();
                 //UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
@@ -465,7 +465,7 @@ namespace GameWorld
                             EnterG1(i);
                         }
                     }
-                    if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
+                    else if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
                     {
                         if (m_cells.BetaCatenin[i] > m_basicG0ProliferationBetaCateninRequirement)
                         {
@@ -515,7 +515,7 @@ namespace GameWorld
                 newPos.Y = -1.0f * m_cryptHeight + 0.1f;
             }
 
-            int childId = m_cells.AddCell(newPos, m_cells.BetaCatenin[cellId], 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_separation, CellCycleStage.Child);
+            int childId = m_cells.AddCell(newPos, m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()), 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_separation, CellCycleStage.Child);
             m_cells.CycleStages[childId] = CellCycleStage.Child;
             m_colourCounts[m_cells.ColourIndices[cellId]]++;
 
