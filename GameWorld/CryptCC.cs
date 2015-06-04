@@ -17,15 +17,19 @@ namespace GameWorld
 
         CellArrayCC m_cells;
         CryptArrayCC m_crypts;
-        
+
+        Int64 framecount;
+
         Random m_random;
 
-        const int m_numCryptsPerSide = 2;
+        System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt");
+
+        const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
         
         const float m_cryptRadius = 500.0f;
-        const float m_cryptHeight = 3000.0f;
+        const float m_cryptHeight = 6000.0f;
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 20.0f;
         public const float m_separation = 500.0f;
@@ -104,10 +108,39 @@ namespace GameWorld
             m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
+        void CountCells()
+        {
+            int count = 0;
+
+            foreach (bool active in m_cells.Active)
+            {
+                if (active)
+                {
+                    count++;
+                }
+            }
+
+            outfile.WriteLine(count.ToString());
+            outfile.Flush();
+        }
+
         public void Tick()
         {
+            framecount++;
+
+            if (framecount > 10000)
+            {
+                int a = 0;
+                a++;
+            }
+
             for (int i = 0; i < 2; i++)
             {
+                if (framecount % 20 == 0)
+                {
+                    CountCells();
+                }
+
                 m_crypts.PreTick();
                 //UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
                 DoBasicG0Phase(); // Basic phenomenological G0 model.
