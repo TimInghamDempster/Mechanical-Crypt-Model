@@ -98,6 +98,7 @@ namespace GameWorld
             {
                 for (int x = 0; x < m_numCryptsPerSide; x++)
                 {
+                    int colourIndex = (x + y * m_numCryptsPerSide) % m_baseColours.Count();
                     m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * m_initialCryptSeparation - centeringOffset),
                         0.0f,
                         100.0f,
