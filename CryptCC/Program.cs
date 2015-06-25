@@ -11,7 +11,8 @@ namespace CryptCC
     {
         public static SlimDX11Renderer.InputHandler Input;
         public static GameWorld.CryptCC m_crypt;
-        static SlimDX11Renderer.Camera m_camera; 
+        static SlimDX11Renderer.Camera m_camera;
+        static bool m_spaceDownLastFrame;
 
         static void Main(string[] args)
         {
@@ -38,6 +39,22 @@ namespace CryptCC
 
         static void UpdateInput()
         {
+            if (m_spaceDownLastFrame == false)
+            {
+                if (Input.Query(Keys.Space))
+                {
+                    m_crypt.SwapDisplayMode();
+                }
+            }
+            if (Input.Query(Keys.Space) == false)
+            {
+                m_spaceDownLastFrame = false;
+            }
+            else
+            {
+                m_spaceDownLastFrame = true;
+            }
+
             if (Input.Query(Keys.A))
             {
                 m_camera.Locator.MoveLocal(-20.0f, 0.0f, 0.0f);

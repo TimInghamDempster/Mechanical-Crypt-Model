@@ -13,7 +13,8 @@ namespace GameWorld
         IRenderer m_renderer;
         IRenderableScene m_scene;
 
-        RenderArrays3d m_renderArrays;
+        RenderArrays3d m_renderArraysAnoikis;
+        RenderArrays3d m_renderArraysCells;
 
         CellArrayCC m_cells;
         CryptArrayCC m_crypts;
@@ -29,7 +30,7 @@ namespace GameWorld
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
         
         const float m_cryptRadius = 500.0f;
-        const float m_cryptHeight = 6000.0f;
+        const float m_cryptHeight = 3000.0f;
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 20.0f;
         public const float m_separation = 500.0f;
@@ -45,7 +46,7 @@ namespace GameWorld
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
-        const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.5f;
+        const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.3f;
         const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
         const float m_basicG0StemBetaCateninRequirement = 500.0f;
         const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
@@ -59,15 +60,20 @@ namespace GameWorld
 
             m_cells = new CellArrayCC();
 
-            m_renderArrays = new RenderArrays3d();
-            m_renderArrays.Positions = m_cells.Positions;
-            m_renderArrays.Colours = m_cells.Colours;
-            m_renderArrays.Visible = m_cells.Active;
+            m_renderArraysAnoikis = new RenderArrays3d();
+            m_renderArraysAnoikis.Positions = new List<Vector3d>();
+            m_renderArraysAnoikis.Colours = new List<Colour>();
+            m_renderArraysAnoikis.Visible = new List<bool>();
+
+            m_renderArraysCells = new RenderArrays3d();
+            m_renderArraysCells.Positions = m_cells.Positions;
+            m_renderArraysCells.Colours = m_cells.Colours;
+            m_renderArraysCells.Visible = m_cells.Active;
 
             m_scene.CreateCamera();
             m_scene.SetCurrentCamera(0);
 
-            m_scene.RenderArrays3d.Add(m_renderArrays);
+            m_scene.RenderArrays3d.Add(m_renderArraysCells);
 
             m_baseColours = new Colour[11];
             m_colourCounts = new int[11];
@@ -92,7 +98,6 @@ namespace GameWorld
             {
                 for (int x = 0; x < m_numCryptsPerSide; x++)
                 {
-                    int colourIndex =(x + y * m_numCryptsPerSide) % m_baseColours.Count();
                     m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * m_initialCryptSeparation - centeringOffset),
                         0.0f,
                         100.0f,
@@ -106,6 +111,20 @@ namespace GameWorld
             }
 
             m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
+        }
+
+        public void SwapDisplayMode()
+        {
+            if(m_scene.RenderArrays3d.Contains(m_renderArraysCells))
+            {
+                m_scene.RenderArrays3d.Remove(m_renderArraysCells);
+                m_scene.RenderArrays3d.Add(m_renderArraysAnoikis);
+            }
+            else
+            {
+                m_scene.RenderArrays3d.Remove(m_renderArraysAnoikis);
+                m_scene.RenderArrays3d.Add(m_renderArraysCells);
+            }
         }
 
         void CountCells()
@@ -124,6 +143,25 @@ namespace GameWorld
             outfile.Flush();
         }
 
+        void OutputAnoikisData()
+        {
+            int[] data = new int[100];
+
+            foreach (var pos in m_renderArraysAnoikis.Positions)
+            {
+                int index = (int)((pos.Y - 250) / (m_cryptHeight + 250) * 100.0f);
+                index *= -1;
+
+                data[index]++;
+            }
+
+            foreach (int dataPoint in data)
+            {
+                outfile.WriteLine(dataPoint);
+            }
+            outfile.Flush();
+        }
+
         public void Tick()
         {
             framecount++;
@@ -136,9 +174,10 @@ namespace GameWorld
 
             for (int i = 0; i < 2; i++)
             {
-                if (framecount % 20 == 0)
+                if (framecount % 2000 == 0)
                 {
-                    CountCells();
+                    //CountCells();
+                   // OutputAnoikisData();
                 }
 
                 m_crypts.PreTick();
@@ -183,6 +222,10 @@ namespace GameWorld
                 {
                     if (m_cells.OffMembraneDistance[i] > m_membraneSeparationToTriggerAnoikis)
                     {
+                        m_renderArraysAnoikis.Positions.Add(m_cells.Positions[i]);
+                        m_renderArraysAnoikis.Colours.Add(m_baseColours[0]);
+                        m_renderArraysAnoikis.Visible.Add(true);
+
                         m_cells.Remove(i);
                     }
                     // Fixed probability rule.
