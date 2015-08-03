@@ -23,7 +23,7 @@ namespace GameWorld
 
         Random m_random;
 
-        System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt");
+        System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt", true);
 
         const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
@@ -128,6 +128,30 @@ namespace GameWorld
             }
         }
 
+
+
+        private void OutputProliferationAndCellCount()
+        {
+            int count = 0;
+            int ki67Count = 0;
+
+            for (int i = 0; i < m_cells.Active.Count; i++)
+            {
+                bool active = m_cells.Active[i];
+                if (active)
+                {
+                    count++;
+                    if(m_cells.CycleStages[i] == CellCycleStage.G)
+                    {
+                        ki67Count++;
+                    }
+                }
+            }
+
+            outfile.WriteLine(count.ToString() + ',' + ki67Count.ToString());
+            outfile.Flush();
+        }
+
         void CountCells()
         {
             int count = 0;
@@ -179,6 +203,7 @@ namespace GameWorld
                 {
                     //CountCells();
                    // OutputAnoikisData();
+                    OutputProliferationAndCellCount();
                 }
 
                 m_crypts.PreTick();
