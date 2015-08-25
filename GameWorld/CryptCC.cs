@@ -41,20 +41,20 @@ namespace GameWorld
         public const float m_cellSize = 300.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
-        const float m_membraneSeparationToTriggerAnoikis = 10.0f;
-        const float m_offMembraneRestorationFactor = 0.1f;
+        const float m_membraneSeparationToTriggerAnoikis = 100.0f;
+        const float m_offMembraneRestorationFactor = 0.01f;
         const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
-        const float m_cellStiffness = 0.001f;
+        const float m_cellStiffness = 0.01f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
         const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.3f;
         const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
-        const float m_basicG0StemBetaCateninRequirement = 5000.0f;
-        const float m_basicG0ProliferationBetaCateninRequirement = 1000.0f;
+        const float m_basicG0StemBetaCateninRequirement = 500.0f;
+        const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
 
         public CryptCC(IRenderer renderer)
         {
@@ -335,8 +335,20 @@ namespace GameWorld
                                 int j = cellsInBox[cell];
                                 if (m_cells.Active[j])
                                 {
-                                    var outerPos = m_cells.Positions[i];
-                                    var innerPos = m_cells.Positions[j];
+
+									int cryptId1 = (int)m_cells.CryptIds[i];
+									int cryptId2 = (int)m_cells.CryptIds[j];
+
+									Vector3d cryptPos1 = m_crypts.m_cryptPositions[cryptId1];
+									Vector3d cryptPos2 = m_crypts.m_cryptPositions[cryptId2];
+
+                                    Vector3d outerPos;
+                                    Vector3d innerPos;
+									Vector3d dummy;
+
+									GetClosestPointOnMembrane(m_cells.Positions[i] - cryptPos1, out outerPos, out dummy);
+									GetClosestPointOnMembrane(m_cells.Positions[j] - cryptPos2, out innerPos, out dummy);
+
                                     var delta = outerPos - innerPos;
                                     var separation = delta.Length();
 
@@ -366,12 +378,6 @@ namespace GameWorld
                                             delta.Z = (float)m_random.NextDouble() - 0.5f;
                                         }
 
-                                        int cryptId1 = (int)m_cells.CryptIds[i];
-                                        int cryptId2 = (int)m_cells.CryptIds[j];
-
-                                        Vector3d mCryptPos1 = m_crypts.m_cryptPositions[cryptId1];
-                                        Vector3d mCryptPos2 = m_crypts.m_cryptPositions[cryptId2];
-
                                         Vector3d force = delta * restitution / separation;
                                         Vector3d cryptForce = force;
                                         cryptForce.Y = 0.0f;
@@ -379,12 +385,12 @@ namespace GameWorld
                                         m_crypts.m_cellularity[cryptId1]++;
                                         m_crypts.m_cellularity[cryptId2]++;
 
-                                        if ((mCryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
+                                        if ((cryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
                                         {
                                             m_crypts.m_forces[cryptId1] += cryptForce;
                                         }
 
-                                        if ((mCryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
+                                        if ((cryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
                                         {
                                             m_crypts.m_forces[cryptId2] -= cryptForce;
                                         }
