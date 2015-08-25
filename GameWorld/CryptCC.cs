@@ -25,9 +25,14 @@ namespace GameWorld
 
         System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt", true);
 
+        const float SecondsPerTimestep = 30.0f;
+
         const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
+
+        const float m_averageGrowthTimeSeconds = 30000.0f;
+        const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
         const float m_cryptHeight = 3000.0f;
@@ -36,20 +41,20 @@ namespace GameWorld
         public const float m_cellSize = 300.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
-        const float m_membraneSeparationToTriggerAnoikis = 200.0f;
+        const float m_membraneSeparationToTriggerAnoikis = 10.0f;
         const float m_offMembraneRestorationFactor = 0.1f;
         const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
-        const float m_cellStiffness = 0.01f;
+        const float m_cellStiffness = 0.001f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
         const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.3f;
         const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
-        const float m_basicG0StemBetaCateninRequirement = 500.0f;
-        const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
+        const float m_basicG0StemBetaCateninRequirement = 5000.0f;
+        const float m_basicG0ProliferationBetaCateninRequirement = 1000.0f;
 
         public CryptCC(IRenderer renderer)
         {
@@ -101,7 +106,7 @@ namespace GameWorld
                     int colourIndex = (x + y * m_numCryptsPerSide) % m_baseColours.Count();
                     m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * m_initialCryptSeparation - centeringOffset),
                         0.0f,
-                        100.0f,
+                        m_averageGrowthTimesteps,
                         m_baseColours[colourIndex],
                         colourIndex,
                         (UInt32)(x + y * m_numCryptsPerSide),
