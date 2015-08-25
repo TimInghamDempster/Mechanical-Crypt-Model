@@ -33,7 +33,7 @@ namespace GameWorld
         const float m_cryptHeight = 3000.0f;
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 20.0f;
-        public const float m_separation = 500.0f;
+        public const float m_cellSize = 300.0f;
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         const float m_membraneSeparationToTriggerAnoikis = 200.0f;
@@ -105,7 +105,7 @@ namespace GameWorld
                         m_baseColours[colourIndex],
                         colourIndex,
                         (UInt32)(x + y * m_numCryptsPerSide),
-                        m_separation,
+                        m_cellSize,
                         CellCycleStage.G0);
                     m_crypts.Add(new Vector3d(x * m_initialCryptSeparation - centeringOffset, 0.0f, y * m_initialCryptSeparation - centeringOffset));
                 }
@@ -314,13 +314,13 @@ namespace GameWorld
 
         void DoCollisionAndMovement()
         {
-            int capacity = m_grid.CalcNumCollisionBoxesInCentre(2.0f * m_separation);
+            int capacity = m_grid.CalcNumCollisionBoxesInCentre(2.0f * m_cellSize);
             List<int> surroundingBoxes = new List<int>(capacity);
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 if (m_cells.Active[i])
                 {
-                    m_grid.GetCollisionBoxes(m_cells.Positions[i], 2.0f * m_separation, surroundingBoxes);
+                    m_grid.GetCollisionBoxes(m_cells.Positions[i], 2.0f * m_cellSize, surroundingBoxes);
                     {
                         for (int box = 0; box < surroundingBoxes.Count; box++)
                         {
@@ -443,8 +443,6 @@ namespace GameWorld
                     var pos = m_cells.Positions[i];
                     pos -= m_crypts.m_cryptPositions[cryptId];
 
-                    bool isAboveBasementMembrane = false;
-
                     // guard against 0 length vector division
                     if (pos.X == 0.0f && pos.Z == 0.0f)
                     {
@@ -459,68 +457,84 @@ namespace GameWorld
 
                     Vector2d pos2d = new Vector2d(pos.X, pos.Z);
 
-                    if (pos2d.Length() > m_cryptRadius + m_flutingRadius)
-                    {
-                        if (pos.Y > 0.0f)
-                        {
-                            isAboveBasementMembrane = true;
-                        }
-                        pos.Y = 0.0f;
-                    }
-                    else if (pos.Y > m_flutingRadius * -1.0f)
-                    {
-                        Vector2d virtualSphereDirection = new Vector2d(pos.X, pos.Z);
-                        virtualSphereDirection /= virtualSphereDirection.Length();
-                        virtualSphereDirection *= m_cryptRadius + m_flutingRadius;
+					Vector3d normal;
+					Vector3d membranePos;
+                    GetClosestPointOnMembrane(pos, out membranePos, out normal);
 
-                        Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_flutingRadius * -1.0f, virtualSphereDirection.Y);
-
-                        Vector3d sphereRelativeCellPosition = pos - virtualSpherePosition;
-                        isAboveBasementMembrane = sphereRelativeCellPosition.Length() > m_flutingRadius;
-                        sphereRelativeCellPosition /= sphereRelativeCellPosition.Length();
-                        sphereRelativeCellPosition *= m_flutingRadius;
-
-                        pos = virtualSpherePosition + sphereRelativeCellPosition;
-                    }
-                    else if (pos.Y > (m_cryptHeight - m_cryptRadius) * -1.0f)
-                    {
-                        Vector2d final;
-                        Vector2d normalised = pos2d / pos2d.Length();
-                        final = normalised * m_cryptRadius;
-
-                        isAboveBasementMembrane = pos2d.Length() < m_cryptRadius;
-
-                        pos.X = final.X;
-                        pos.Z = final.Y;
-                    }
-                    else
-                    {
-                        Vector3d nicheCentre = new Vector3d(0.0f, (m_cryptHeight - m_cryptRadius) * -1.0f, 0.0f);
-                        Vector3d positionRelativeToNicheCentre = pos - nicheCentre;
-                        isAboveBasementMembrane = positionRelativeToNicheCentre.Length() < m_cryptRadius;
-                        positionRelativeToNicheCentre = positionRelativeToNicheCentre / positionRelativeToNicheCentre.Length();
-                        pos = positionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
-                    }
-
-                    pos += m_crypts.m_cryptPositions[cryptId];
-                    Vector3d delta = m_cells.Positions[i] - pos;
+					membranePos += m_crypts.m_cryptPositions[cryptId];
+					Vector3d delta = m_cells.Positions[i] - membranePos;
 
                     m_cells.OffMembraneDistance[i] = delta.Length();
 
+
+					bool isAboveBasementMembrane = Vector3d.DotProduct(delta, normal) > 0.0f;
+
                     if (isAboveBasementMembrane == false)
                     {
-                        m_cells.OffMembraneDistance[i] *= -1.0f;
-                        delta *= m_stromalRestorationFactor;
+						m_cells.OffMembraneDistance[i] *= -1.0f;
+						delta *= m_stromalRestorationFactor;
                     }
                     else
                     {
-                        delta *= m_offMembraneRestorationFactor;
+						delta *= m_offMembraneRestorationFactor;
                     }
 
                     m_cells.Positions[i] -= delta;
                 }
             }
         }
+
+		void GetClosestPointOnMembrane(Vector3d inputPoint, out Vector3d outPoint, out Vector3d normal)
+		{
+			Vector2d pos2d = new Vector2d(inputPoint.X, inputPoint.Z);
+
+			if (pos2d.Length() > m_cryptRadius + m_flutingRadius)
+			{
+				outPoint = inputPoint;
+				outPoint.Y = 0.0f;
+				normal = new Vector3d(0.0f,1.0f,0.0f);
+			}
+			else if (inputPoint.Y > m_flutingRadius * -1.0f)
+			{
+				Vector2d virtualSphereDirection = pos2d;
+				virtualSphereDirection /= virtualSphereDirection.Length();
+				virtualSphereDirection *= m_cryptRadius + m_flutingRadius;
+
+				Vector3d virtualSpherePosition = new Vector3d(virtualSphereDirection.X, m_flutingRadius * -1.0f, virtualSphereDirection.Y);
+
+				Vector3d sphereRelativeCellPosition = inputPoint - virtualSpherePosition;
+
+				normal = sphereRelativeCellPosition / sphereRelativeCellPosition.Length();
+
+				sphereRelativeCellPosition /= sphereRelativeCellPosition.Length();
+				sphereRelativeCellPosition *= m_flutingRadius;
+
+				outPoint = virtualSpherePosition + sphereRelativeCellPosition;
+			}
+			else if (inputPoint.Y > (m_cryptHeight - m_cryptRadius) * -1.0f)
+			{
+				Vector2d final;
+				Vector2d normalised = pos2d / pos2d.Length();
+				final = normalised * m_cryptRadius;
+
+				outPoint.X = final.X;
+				outPoint.Y = inputPoint.Y;
+				outPoint.Z = final.Y;
+
+				normal.X = pos2d.X * -1.0f;
+				normal.Y = 0.0f;
+				normal.Z = pos2d.Y * -1.0f;
+				normal /= normal.Length();
+			}
+			else
+			{
+				Vector3d nicheCentre = new Vector3d(0.0f, (m_cryptHeight - m_cryptRadius) * -1.0f, 0.0f);
+				Vector3d normalisedPositionRelativeToNicheCentre = inputPoint - nicheCentre;
+				normalisedPositionRelativeToNicheCentre = normalisedPositionRelativeToNicheCentre / normalisedPositionRelativeToNicheCentre.Length();
+				outPoint = normalisedPositionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
+				normal = normalisedPositionRelativeToNicheCentre * -1.0f;
+			}
+		}
 
         void DoGrowthPhase()
         {
@@ -617,7 +631,7 @@ namespace GameWorld
                 newPos.Y = -1.0f * m_cryptHeight + 0.1f;
             }
 
-            int childId = m_cells.AddCell(newPos, m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()), 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_separation, CellCycleStage.Child);
+            int childId = m_cells.AddCell(newPos, m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()), 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_cellSize, CellCycleStage.Child);
             m_cells.CycleStages[childId] = CellCycleStage.Child;
             m_colourCounts[m_cells.ColourIndices[cellId]]++;
 
