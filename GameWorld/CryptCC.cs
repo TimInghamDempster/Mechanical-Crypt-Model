@@ -31,7 +31,7 @@ namespace GameWorld
         const float m_initialCryptSeparation = 2000.0f;
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
 
-        const float m_averageGrowthTimeSeconds = 30000.0f;
+        const float m_averageGrowthTimeSeconds = 3000.0f;
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
@@ -390,12 +390,12 @@ namespace GameWorld
 
                                         if ((cryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
                                         {
-                                            m_crypts.m_forces[cryptId1] += cryptForce;
+                                            //m_crypts.m_forces[cryptId1] += cryptForce;
                                         }
 
                                         if ((cryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
                                         {
-                                            m_crypts.m_forces[cryptId2] -= cryptForce;
+                                            //m_crypts.m_forces[cryptId2] -= cryptForce;
                                         }
 
                                         m_cells.Positions[i] += force;
@@ -647,12 +647,14 @@ namespace GameWorld
 
             int childId = m_cells.AddCell(newPos, 
                 0.0f,
-                m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()),
+                (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimeSeconds,
                 m_cells.Colours[cellId],
                 m_cells.ColourIndices[cellId],
                 m_cells.CryptIds[cellId],
                 CellSize,
                 CellCycleStage.Child);
+
+            m_cells.GrowthStageRequiredTimes[cellId] = (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimeSeconds;
 
             m_cells.CycleStages[childId] = CellCycleStage.Child;
             m_colourCounts[m_cells.ColourIndices[cellId]]++;
