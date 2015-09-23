@@ -35,24 +35,27 @@ namespace GameWorld
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
-        const float m_cryptHeight = 3000.0f;
+        const float m_cellsPerColumn = 25.0f; // Look up reference for this
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 20.0f;
-        public const float m_cellSize = 300.0f;
+        const float m_cellsPerRadius = 23.0f; // Have a reference for this but need to find it.
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-        const float m_offMembraneRestorationFactor = 0.01f;
+        const float m_offMembraneRestorationFactor = 0.1f;
         const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
-        const float m_cellStiffness = 0.01f;
+        const float m_cellStiffness = 0.3f;
         Colour[] m_baseColours;
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
-        const float m_basicG0ProliferationBoundary = m_cryptHeight * -0.3f;
-        const float m_basicG0StemBoundary = m_cryptHeight * -0.8f;
+        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius); } }
+        static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
+
+        float m_basicG0ProliferationBoundary = CryptHeight * -0.3f;
+        float m_basicG0StemBoundary = CryptHeight * -0.8f;
         const float m_basicG0StemBetaCateninRequirement = 500.0f;
         const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
 
@@ -104,19 +107,19 @@ namespace GameWorld
                 for (int x = 0; x < m_numCryptsPerSide; x++)
                 {
                     int colourIndex = (x + y * m_numCryptsPerSide) % m_baseColours.Count();
-                    m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * m_cryptHeight, y * m_initialCryptSeparation - centeringOffset),
+                    m_cells.AddCell(new Vector3d(x * m_initialCryptSeparation - centeringOffset, -1.0f * CryptHeight, y * m_initialCryptSeparation - centeringOffset),
                         0.0f,
                         m_averageGrowthTimesteps,
                         m_baseColours[colourIndex],
                         colourIndex,
                         (UInt32)(x + y * m_numCryptsPerSide),
-                        m_cellSize,
+                        CellSize,
                         CellCycleStage.G0);
                     m_crypts.Add(new Vector3d(x * m_initialCryptSeparation - centeringOffset, 0.0f, y * m_initialCryptSeparation - centeringOffset));
                 }
             }
 
-            m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (m_cryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
+            m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (CryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
         public void SwapDisplayMode()
@@ -179,7 +182,7 @@ namespace GameWorld
 
             foreach (var pos in m_renderArraysAnoikis.Positions)
             {
-                int index = (int)((pos.Y - 250) / (m_cryptHeight + 250) * 100.0f);
+                int index = (int)((pos.Y - 250) / (CryptHeight + 250) * 100.0f);
                 index *= -1;
 
                 data[index]++;
@@ -319,13 +322,13 @@ namespace GameWorld
 
         void DoCollisionAndMovement()
         {
-            int capacity = m_grid.CalcNumCollisionBoxesInCentre(2.0f * m_cellSize);
+            int capacity = m_grid.CalcNumCollisionBoxesInCentre(2.0f * CellSize);
             List<int> surroundingBoxes = new List<int>(capacity);
             for (int i = 0; i < m_cells.Positions.Count; i++)
             {
                 if (m_cells.Active[i])
                 {
-                    m_grid.GetCollisionBoxes(m_cells.Positions[i], 2.0f * m_cellSize, surroundingBoxes);
+                    m_grid.GetCollisionBoxes(m_cells.Positions[i], 2.0f * CellSize, surroundingBoxes);
                     {
                         for (int box = 0; box < surroundingBoxes.Count; box++)
                         {
@@ -461,9 +464,9 @@ namespace GameWorld
                     }
 
                     // Don't fall through the bottom of the crypt
-                    if (pos.Y < -1.0f * m_cryptHeight)
+                    if (pos.Y < -1.0f * CryptHeight)
                     {
-                        pos.Y = -1.0f * m_cryptHeight + 10.0f;
+                        pos.Y = -1.0f * CryptHeight + 10.0f;
                     }
 
                     Vector2d pos2d = new Vector2d(pos.X, pos.Z);
@@ -522,7 +525,7 @@ namespace GameWorld
 
 				outPoint = virtualSpherePosition + sphereRelativeCellPosition;
 			}
-			else if (inputPoint.Y > (m_cryptHeight - m_cryptRadius) * -1.0f)
+			else if (inputPoint.Y > (CryptHeight - m_cryptRadius) * -1.0f)
 			{
 				Vector2d final;
 				Vector2d normalised = pos2d / pos2d.Length();
@@ -539,7 +542,7 @@ namespace GameWorld
 			}
 			else
 			{
-				Vector3d nicheCentre = new Vector3d(0.0f, (m_cryptHeight - m_cryptRadius) * -1.0f, 0.0f);
+				Vector3d nicheCentre = new Vector3d(0.0f, (CryptHeight - m_cryptRadius) * -1.0f, 0.0f);
 				Vector3d normalisedPositionRelativeToNicheCentre = inputPoint - nicheCentre;
 				normalisedPositionRelativeToNicheCentre = normalisedPositionRelativeToNicheCentre / normalisedPositionRelativeToNicheCentre.Length();
 				outPoint = normalisedPositionRelativeToNicheCentre * m_cryptRadius + nicheCentre;
@@ -609,8 +612,8 @@ namespace GameWorld
             {
                 if (m_cells.Active[i] && m_cells.CycleStages[i] == CellCycleStage.G0)
                 {
-                    float height = m_cells.Positions[i].Y + m_cryptHeight;
-                    float wntAmount = 1.0f - height / m_cryptHeight;
+                    float height = m_cells.Positions[i].Y + CryptHeight;
+                    float wntAmount = 1.0f - height / CryptHeight;
 
                     m_cells.BetaCatenin[i] += wntAmount - m_betaCateninConsumptionPerTimestep;
 
@@ -637,12 +640,20 @@ namespace GameWorld
             newPos.Y += 5.0f - ((float)m_random.NextDouble() * 10.0f);
             newPos.Z += 5.0f - ((float)m_random.NextDouble() * 10.0f);
 
-            if (newPos.Y < -1.0f * m_cryptHeight)
+            if (newPos.Y < -1.0f * CryptHeight)
             {
-                newPos.Y = -1.0f * m_cryptHeight + 0.1f;
+                newPos.Y = -1.0f * CryptHeight + 0.1f;
             }
 
-            int childId = m_cells.AddCell(newPos, m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()), 50.0f + ((float)m_random.NextDouble() * 50.0f), m_cells.Colours[cellId], m_cells.ColourIndices[cellId], m_cells.CryptIds[cellId], m_cellSize, CellCycleStage.Child);
+            int childId = m_cells.AddCell(newPos, 
+                0.0f,
+                m_cells.GrowthStageRequiredTimes[cellId] * (float)(0.5f + m_random.NextDouble()),
+                m_cells.Colours[cellId],
+                m_cells.ColourIndices[cellId],
+                m_cells.CryptIds[cellId],
+                CellSize,
+                CellCycleStage.Child);
+
             m_cells.CycleStages[childId] = CellCycleStage.Child;
             m_colourCounts[m_cells.ColourIndices[cellId]]++;
 
