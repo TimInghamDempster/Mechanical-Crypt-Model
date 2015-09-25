@@ -35,7 +35,7 @@ namespace GameWorld
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
-        const float m_cellsPerColumn = 25.0f; // Look up reference for this
+        const float m_cellsPerColumn = 80.0f; // Look up reference for this, lots in Potten
         const float m_flutingRadius = 500.0f;
         const float m_betaCateninRequirement = 20.0f;
         const float m_cellsPerRadius = 23.0f; // Have a reference for this but need to find it.
@@ -51,7 +51,7 @@ namespace GameWorld
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
-        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius); } }
+        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r)
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
 		const float m_averageNumberOfCellsInCycle = 20;
@@ -122,7 +122,7 @@ namespace GameWorld
                 }
             }
 
-            m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 10, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (CryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
+            m_grid = new UniformIndexGrid(m_numCryptsPerSide * 2, 30, m_numCryptsPerSide * 2, new Vector3d(2.0f * (m_colonBoundary.X + 100.0f), -1.0f * (CryptHeight + 500.0f), 2.0f * (m_colonBoundary.Y + 100.0f)), new Vector3d(-1.0f * (m_colonBoundary.X + 10.0f), 0.0f, -1.0f * (m_colonBoundary.Y + 10.0f)));
         }
 
         public void SwapDisplayMode()
@@ -221,10 +221,10 @@ namespace GameWorld
                 //UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
                 DoBasicG0Phase(); // Basic phenomenological G0 model.
                 DoGrowthPhase();
-                AssignCellsToGrid();
+				AssignCellsToGrid();
+				EnforceCryptWalls();
                 DoCollisionAndMovement();
                 DoAnoikis();
-                EnforceCryptWalls();
                 EnforceColonBoundary();
             }
         }
@@ -339,72 +339,75 @@ namespace GameWorld
                             for (int cell = 0; cell < cellsInBox.Count; cell++)
                             {
                                 int j = cellsInBox[cell];
-                                if (m_cells.Active[j])
-                                {
+								if(i < j) // Avoid double checks.
+								{
+									if (m_cells.Active[j])
+									{
 
-									int cryptId1 = (int)m_cells.CryptIds[i];
-									int cryptId2 = (int)m_cells.CryptIds[j];
+										int cryptId1 = (int)m_cells.CryptIds[i];
+										int cryptId2 = (int)m_cells.CryptIds[j];
 
-									Vector3d cryptPos1 = m_crypts.m_cryptPositions[cryptId1];
-									Vector3d cryptPos2 = m_crypts.m_cryptPositions[cryptId2];
+										Vector3d cryptPos1 = m_crypts.m_cryptPositions[cryptId1];
+										Vector3d cryptPos2 = m_crypts.m_cryptPositions[cryptId2];
 
-                                    Vector3d outerPos;
-                                    Vector3d innerPos;
-									Vector3d dummy;
+										Vector3d outerPos = m_cells.OnMembranePosition[i];
+										Vector3d innerPos = m_cells.OnMembranePosition[j];
+										//Vector3d dummy;
 
-									GetClosestPointOnMembrane(m_cells.Positions[i] - cryptPos1, out outerPos, out dummy);
-									GetClosestPointOnMembrane(m_cells.Positions[j] - cryptPos2, out innerPos, out dummy);
+										//GetClosestPointOnMembrane(m_cells.Positions[i] - cryptPos1, out outerPos, out dummy);
+										//GetClosestPointOnMembrane(m_cells.Positions[j] - cryptPos2, out innerPos, out dummy);
 
-                                    var delta = outerPos - innerPos;
-                                    var separation = delta.Length();
+										var delta = outerPos - innerPos;
+										var separation = delta.Length();
 
 
-                                    float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
+										float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
 
-                                    if (j == m_cells.ChildPointIndices[i])
-                                    {
-                                        float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
-                                        targetSeparation *= growthFactor;
-                                    }
-                                    else if (i == m_cells.ChildPointIndices[j])
-                                    {
-                                        float growthFactor = m_cells.GrowthStageCurrentTimes[j] / m_cells.GrowthStageRequiredTimes[j];
-                                        targetSeparation *= growthFactor;
-                                    }
+										if (j == m_cells.ChildPointIndices[i])
+										{
+											float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
+											targetSeparation *= growthFactor;
+										}
+										else if (i == m_cells.ChildPointIndices[j])
+										{
+											float growthFactor = m_cells.GrowthStageCurrentTimes[j] / m_cells.GrowthStageRequiredTimes[j];
+											targetSeparation *= growthFactor;
+										}
 
-                                    if (separation < targetSeparation)
-                                    {
-                                        float restitution = targetSeparation - separation;
-                                        restitution *= m_cellStiffness;
-                                        if (separation < 0.1f)
-                                        {
-                                            separation = 0.1f;
-                                            delta.X = (float)m_random.NextDouble() - 0.5f;
-                                            delta.Y = (float)m_random.NextDouble() - 0.5f;
-                                            delta.Z = (float)m_random.NextDouble() - 0.5f;
-                                        }
+										if (separation < targetSeparation)
+										{
+											float restitution = targetSeparation - separation;
+											restitution *= m_cellStiffness;
+											if (separation < 0.1f)
+											{
+												separation = 0.1f;
+												delta.X = (float)m_random.NextDouble() - 0.5f;
+												delta.Y = (float)m_random.NextDouble() - 0.5f;
+												delta.Z = (float)m_random.NextDouble() - 0.5f;
+											}
 
-                                        Vector3d force = delta * restitution / separation;
-                                        Vector3d cryptForce = force;
-                                        cryptForce.Y = 0.0f;
+											Vector3d force = delta * restitution / separation;
+											Vector3d cryptForce = force;
+											cryptForce.Y = 0.0f;
 
-                                        m_crypts.m_cellularity[cryptId1]++;
-                                        m_crypts.m_cellularity[cryptId2]++;
+											m_crypts.m_cellularity[cryptId1]++;
+											m_crypts.m_cellularity[cryptId2]++;
 
-                                        if ((cryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
-                                        {
-                                            //m_crypts.m_forces[cryptId1] += cryptForce;
-                                        }
+											if ((cryptPos1 - outerPos).Length() < m_cryptRadius + m_flutingRadius)
+											{
+												//m_crypts.m_forces[cryptId1] += cryptForce;
+											}
 
-                                        if ((cryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
-                                        {
-                                            //m_crypts.m_forces[cryptId2] -= cryptForce;
-                                        }
+											if ((cryptPos2 - innerPos).Length() < m_cryptRadius + m_flutingRadius)
+											{
+												//m_crypts.m_forces[cryptId2] -= cryptForce;
+											}
 
-                                        m_cells.Positions[i] += force;
-                                        m_cells.Positions[j] -= force;
-                                    }
-                                }
+											m_cells.Positions[i] += force;
+											m_cells.Positions[j] -= force;
+										}
+									}
+								}
                             }
                         }
                     }
@@ -497,6 +500,7 @@ namespace GameWorld
                     }
 
                     m_cells.Positions[i] -= delta;
+					m_cells.OnMembranePosition[i] = membranePos;
                 }
             }
         }
