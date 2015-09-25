@@ -25,13 +25,13 @@ namespace GameWorld
 
         System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt", true);
 
-        const float SecondsPerTimestep = 30.0f;
+        const float SecondsPerTimestep = 3600.0f;
 
         const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
 
-        const float m_averageGrowthTimeSeconds = 3000.0f;
+        const float m_averageGrowthTimeSeconds = 117000.0f;
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
@@ -42,7 +42,7 @@ namespace GameWorld
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-        const float m_offMembraneRestorationFactor = 0.1f;
+        const float m_offMembraneRestorationFactor = 0.01f;
         const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -54,12 +54,15 @@ namespace GameWorld
         static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius); } }
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
-        float m_basicG0ProliferationBoundary = CryptHeight * -0.3f;
-        float m_basicG0StemBoundary = CryptHeight * -0.8f;
-        const float m_basicG0StemBetaCateninRequirement = 500.0f;
-        const float m_basicG0ProliferationBetaCateninRequirement = 100.0f;
+		const float m_averageNumberOfCellsInCycle = 20;
 
-        public CryptCC(IRenderer renderer)
+        float m_basicG0ProliferationBoundary = CryptHeight * -0.3f;
+        float m_basicG0StemBoundary = CryptHeight * -0.9f;
+        
+		static float BasicG0ProliferationBetaCateninRequirement { get { return (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
+		static float BasicG0StemBetaCateninRequirement { get { return BasicG0ProliferationBetaCateninRequirement * 0.5f; } } 
+        
+		public CryptCC(IRenderer renderer)
         {
             m_renderer = renderer;
             m_scene = m_renderer.GetNewScene();
@@ -590,14 +593,14 @@ namespace GameWorld
                     
                     if (m_cells.Positions[i].Y < m_basicG0StemBoundary)
                     {
-                        if (m_cells.BetaCatenin[i] > m_basicG0StemBetaCateninRequirement)
+                        if (m_cells.BetaCatenin[i] > BasicG0StemBetaCateninRequirement)
                         {
                             EnterG1(i);
                         }
                     }
                     else if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
                     {
-                        if (m_cells.BetaCatenin[i] > m_basicG0ProliferationBetaCateninRequirement)
+                        if (m_cells.BetaCatenin[i] > BasicG0ProliferationBetaCateninRequirement)
                         {
                             EnterG1(i);
                         }
@@ -633,6 +636,7 @@ namespace GameWorld
         void EnterG1(int cellId)
         {
             m_cells.CycleStages[cellId] = CellCycleStage.G;
+			m_cells.BetaCatenin[cellId] = 0;
             m_cells.Colours[cellId] = new Colour() { A = 1.0f, R = 1.0f, G = 0.0f, B = 1.0f };
 
             Vector3d newPos = m_cells.Positions[cellId];
@@ -647,14 +651,14 @@ namespace GameWorld
 
             int childId = m_cells.AddCell(newPos, 
                 0.0f,
-                (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimeSeconds,
+                (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimesteps,
                 m_cells.Colours[cellId],
                 m_cells.ColourIndices[cellId],
                 m_cells.CryptIds[cellId],
                 CellSize,
                 CellCycleStage.Child);
 
-            m_cells.GrowthStageRequiredTimes[cellId] = (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimeSeconds;
+            m_cells.GrowthStageRequiredTimes[cellId] = (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimesteps;
 
             m_cells.CycleStages[childId] = CellCycleStage.Child;
             m_colourCounts[m_cells.ColourIndices[cellId]]++;
