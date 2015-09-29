@@ -25,13 +25,13 @@ namespace GameWorld
 
         System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt", true);
 
-        const float SecondsPerTimestep = 3600.0f;
+        const float SecondsPerTimestep = 360.0f;
 
         const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
-        const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 1000.0f;
+        const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 100.0f;
 
-        const float m_averageGrowthTimeSeconds = 117000.0f;
+        const float m_averageGrowthTimeSeconds = 108000.0f;
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
@@ -51,16 +51,16 @@ namespace GameWorld
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
-        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r)
+        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / 0.75f); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
-		const float m_averageNumberOfCellsInCycle = 20;
+		const float m_averageNumberOfCellsInCycle = 150;
 
-        float m_basicG0ProliferationBoundary = CryptHeight * -0.3f;
+        float m_basicG0ProliferationBoundary = CryptHeight * -0.5f;
         float m_basicG0StemBoundary = CryptHeight * -0.9f;
         
 		static float BasicG0ProliferationBetaCateninRequirement { get { return (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
-		static float BasicG0StemBetaCateninRequirement { get { return BasicG0ProliferationBetaCateninRequirement * 0.5f; } } 
+		static float BasicG0StemBetaCateninRequirement { get { return BasicG0ProliferationBetaCateninRequirement * 1.0f; } } 
         
 		public CryptCC(IRenderer renderer)
         {
@@ -200,22 +200,22 @@ namespace GameWorld
 
         public void Tick()
         {
-            framecount++;
-
-            if (framecount > 10000)
-            {
-                int a = 0;
-                a++;
-            }
-
             for (int i = 0; i < 2; i++)
             {
-                if (framecount % 2000 == 0)
+                if (framecount % 200 == 0)
                 {
-                    //CountCells();
+                    CountCells();
                    // OutputAnoikisData();
-                    OutputProliferationAndCellCount();
+                    //OutputProliferationAndCellCount();
                 }
+
+				framecount++;
+
+				if (framecount > 10000)
+				{
+					int a = 0;
+					a++;
+				}
 
                 m_crypts.PreTick();
                 //UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
@@ -421,7 +421,8 @@ namespace GameWorld
             {
                 if (m_cells.Active[i])
                 {
-                    var pos = m_cells.Positions[i];
+					int crypt = (int)m_cells.CryptIds[i];
+                    var pos = m_cells.Positions[i] - m_crypts.m_cryptPositions[crypt];
 
                     if (pos.X > m_colonBoundary.X)
                     {
@@ -448,7 +449,7 @@ namespace GameWorld
                         pos.Z -= delta;
                     }
 
-                    m_cells.Positions[i] = pos;
+                    m_cells.Positions[i] = pos + m_crypts.m_cryptPositions[crypt];
                 }
             }
         }
