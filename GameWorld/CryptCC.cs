@@ -31,7 +31,7 @@ namespace GameWorld
         const float m_initialCryptSeparation = 2000.0f;
         const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 100.0f;
 
-        const float m_averageGrowthTimeSeconds = 108000.0f;
+        const float m_averageGrowthTimeSeconds = 108000.0f; // == 30 hours for complete cell cycle
         const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
         
         const float m_cryptRadius = 500.0f;
@@ -51,10 +51,12 @@ namespace GameWorld
         int[] m_colourCounts;
         UniformIndexGrid m_grid;
 
-        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / 0.75f); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
+		const float m_compressionFactor = 0.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
+
+        static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / m_compressionFactor); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
-		const float m_averageNumberOfCellsInCycle = 150;
+		const float m_averageNumberOfCellsInCycle = 150 * m_compressionFactor;
 
         float m_basicG0ProliferationBoundary = CryptHeight * -0.5f;
         float m_basicG0StemBoundary = CryptHeight * -0.9f;
