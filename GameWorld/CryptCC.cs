@@ -67,7 +67,7 @@ namespace GameWorld
             m_renderer = renderer;
             m_scene = m_renderer.GetNewScene();
 
-            m_random = new Random();
+            m_random = new Random(DateTime.Now.Millisecond);
 
             m_cells = new CellArrayCC();
 
