@@ -16,9 +16,14 @@ namespace CryptCC
 
         static void Main(string[] args)
         {
-
-            SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
-            m_crypt = new GameWorld.CryptCC(renderer);
+			string filename = "data.txt";
+			if(args.Count() > 0)
+			{
+				filename = args[0];
+			}
+            
+			SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
+            m_crypt = new GameWorld.CryptCC(renderer, filename);
 
             m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 100000.0f);
 

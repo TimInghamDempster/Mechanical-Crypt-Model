@@ -23,7 +23,7 @@ namespace GameWorld
 
         Random m_random;
 
-        System.IO.StreamWriter outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\data.txt", true);
+        System.IO.StreamWriter outfile;
 
         const float SecondsPerTimestep = 360.0f;
 
@@ -64,8 +64,9 @@ namespace GameWorld
 		static float BasicG0ProliferationBetaCateninRequirement { get { return (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
 		static float BasicG0StemBetaCateninRequirement { get { return BasicG0ProliferationBetaCateninRequirement * 1.0f; } } 
         
-		public CryptCC(IRenderer renderer)
+		public CryptCC(IRenderer renderer, string filename)
         {
+			outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\" + filename, true);
             m_renderer = renderer;
             m_scene = m_renderer.GetNewScene();
 
