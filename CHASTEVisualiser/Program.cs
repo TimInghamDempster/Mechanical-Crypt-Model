@@ -37,7 +37,7 @@ namespace CHASTEVisualiser
             renderer.Dispose();
         }
 
-        static void UpdateInput()
+        static bool UpdateInput()
         {
             if (Input.Query(Keys.A))
             {
@@ -71,6 +71,12 @@ namespace CHASTEVisualiser
             {
                 m_camera.Locator.Heading(0.05f);
             }
+			if(Input.Query(Keys.Escape))
+			{
+				return true;
+			}
+
+			return false;
         }
     }
 }

@@ -25,6 +25,8 @@ namespace GameWorld
 
         System.IO.StreamWriter outfile;
 
+		const int m_finalFrame = 500 * 200;
+
         const float SecondsPerTimestep = 360.0f;
 
         const int m_numCryptsPerSide = 1;
@@ -56,7 +58,7 @@ namespace GameWorld
         static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / m_compressionFactor); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
-		const float m_averageNumberOfCellsInCycle = 150 * m_compressionFactor;
+		const float m_averageNumberOfCellsInCycle = 500 * m_compressionFactor;
 
         float m_basicG0ProliferationBoundary = CryptHeight * -0.5f;
         float m_basicG0StemBoundary = CryptHeight * -0.9f;
@@ -66,7 +68,7 @@ namespace GameWorld
         
 		public CryptCC(IRenderer renderer, string filename)
         {
-			outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\" + filename, true);
+			outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\" + filename, false);
             m_renderer = renderer;
             m_scene = m_renderer.GetNewScene();
 
@@ -201,7 +203,7 @@ namespace GameWorld
             outfile.Flush();
         }
 
-        public void Tick()
+        public bool Tick()
         {
             for (int i = 0; i < 2; i++)
             {
@@ -211,6 +213,12 @@ namespace GameWorld
                    // OutputAnoikisData();
                     //OutputProliferationAndCellCount();
                 }
+
+				if(framecount == m_finalFrame)
+				{
+					outfile.Close();
+					return true;
+				}
 
 				framecount++;
 
@@ -230,6 +238,7 @@ namespace GameWorld
                 DoAnoikis();
                 EnforceColonBoundary();
             }
+			return false;
         }
 
         void AssignCellsToGrid()
@@ -353,8 +362,8 @@ namespace GameWorld
 										Vector3d cryptPos1 = m_crypts.m_cryptPositions[cryptId1];
 										Vector3d cryptPos2 = m_crypts.m_cryptPositions[cryptId2];
 
-										Vector3d outerPos = m_cells.OnMembranePosition[i];
-										Vector3d innerPos = m_cells.OnMembranePosition[j];
+										Vector3d outerPos = m_cells.OnMembranePositions[i];
+										Vector3d innerPos = m_cells.OnMembranePositions[j];
 										//Vector3d dummy;
 
 										//GetClosestPointOnMembrane(m_cells.Positions[i] - cryptPos1, out outerPos, out dummy);
@@ -504,7 +513,7 @@ namespace GameWorld
                     }
 
                     m_cells.Positions[i] -= delta;
-					m_cells.OnMembranePosition[i] = membranePos;
+					m_cells.OnMembranePositions[i] = membranePos;
                 }
             }
         }
@@ -673,5 +682,5 @@ namespace GameWorld
 
             m_cells.ChildPointIndices[cellId] = childId;
         }
-    }
+	}
 }

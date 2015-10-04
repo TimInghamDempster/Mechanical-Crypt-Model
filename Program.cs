@@ -29,12 +29,13 @@ namespace Snowball
             renderer.Dispose();
         }
 
-        static void UpdateInput()
+        static bool UpdateInput()
         {
            if(Input.Query(Keys.Space))
            {
                // Do something
            }
+		   return false;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace GameWorld
         const float m_growthRate = 10.0f;
 
         public List<Vector3d> Positions;
-		public List<Vector3d> OnMembranePosition;
+		public List<Vector3d> OnMembranePositions;
         public List<float> Radii;
         public List<Colour> Colours;
         public List<float> BetaCatenin;
@@ -39,7 +39,7 @@ namespace GameWorld
         public CellArrayCC()
         {
             Positions = new List<Vector3d>();
-			OnMembranePosition = new List<Vector3d>();
+			OnMembranePositions = new List<Vector3d>();
             Radii = new List<float>();
             Colours = new List<Colour>();
             BetaCatenin = new List<float>();
@@ -71,7 +71,7 @@ namespace GameWorld
                 m_freeIndices.RemoveAt(m_freeIndices.Count - 1);
 
                 Positions[index] = position;
-				OnMembranePosition[index] = position;
+				OnMembranePositions[index] = position;
                 Radii[index] = radius;
                 Colours[index] = colour;
                 BetaCatenin[index] = wnt;
@@ -89,7 +89,7 @@ namespace GameWorld
             else
             {
                 Positions.Add(position);
-				OnMembranePosition.Add(position);
+				OnMembranePositions.Add(position);
                 Radii.Add(radius);
                 Colours.Add(colour);
                 BetaCatenin.Add(wnt);

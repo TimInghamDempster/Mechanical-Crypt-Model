@@ -176,7 +176,7 @@ namespace GameWorld
             }
         }
 
-        public void Tick()
+        public bool Tick()
         {
             for (int i = 0; i < 100; i++)
             {
@@ -204,6 +204,7 @@ namespace GameWorld
                 m_tickCount++;
             }
             //DoEnergeticEvents();
+			return false;
         }
 
         void KillMomentum()

@@ -218,7 +218,7 @@ namespace SlimDX11Renderer
             m_depthView.Dispose();
         }
 
-        public void RenderBlobArray()
+        public bool RenderBlobArray()
         {
             if (m_currentSceneIndex < m_scenes.Count)
             {
@@ -257,6 +257,7 @@ namespace SlimDX11Renderer
 
                 swapChain_.Present(0, PresentFlags.None);
             }
+			return false;
         }
 
         void Render()

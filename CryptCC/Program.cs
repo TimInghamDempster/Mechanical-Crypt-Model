@@ -42,7 +42,7 @@ namespace CryptCC
             renderer.Dispose();
         }
 
-        static void UpdateInput()
+        static bool UpdateInput()
         {
             if (m_spaceDownLastFrame == false)
             {
@@ -92,6 +92,11 @@ namespace CryptCC
             {
                 m_camera.Locator.Heading(0.05f);
             }
+			if(Input.Query(Keys.Escape))
+			{
+				return true;
+			}
+			return false;
         }
     }
 }
