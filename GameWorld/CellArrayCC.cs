@@ -20,9 +20,7 @@ namespace GameWorld
         const float m_growthRate = 10.0f;
 
         public List<Vector3d> Positions;
-        public List<Vector3d> OnMembranePosition;
-        public List<Vector3d> PreviousPositions;
-        public List<bool> HasMovedSignificantly;
+		public List<Vector3d> OnMembranePosition;
         public List<float> Radii;
         public List<Colour> Colours;
         public List<float> BetaCatenin;
@@ -42,8 +40,6 @@ namespace GameWorld
         {
             Positions = new List<Vector3d>();
 			OnMembranePosition = new List<Vector3d>();
-            PreviousPositions = new List<Vector3d>();
-            HasMovedSignificantly = new List<bool>();
             Radii = new List<float>();
             Colours = new List<Colour>();
             BetaCatenin = new List<float>();
@@ -76,8 +72,6 @@ namespace GameWorld
 
                 Positions[index] = position;
 				OnMembranePosition[index] = position;
-                PreviousPositions[index] = position;
-                HasMovedSignificantly[index] = false;
                 Radii[index] = radius;
                 Colours[index] = colour;
                 BetaCatenin[index] = wnt;
@@ -96,8 +90,6 @@ namespace GameWorld
             {
                 Positions.Add(position);
 				OnMembranePosition.Add(position);
-                PreviousPositions.Add(position);
-                HasMovedSignificantly.Add(false);
                 Radii.Add(radius);
                 Colours.Add(colour);
                 BetaCatenin.Add(wnt);
