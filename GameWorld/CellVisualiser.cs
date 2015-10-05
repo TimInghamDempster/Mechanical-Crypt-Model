@@ -109,7 +109,7 @@ namespace GameWorld
             }
         }
 
-        public void Tick()
+        public bool Tick()
         {
             countdown--;
 
@@ -125,6 +125,7 @@ namespace GameWorld
 
                 SwitchActiveList(activeList);
             }
+			return false;
         }
     }
 }

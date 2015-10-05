@@ -11,7 +11,7 @@ namespace Core
         // tho as the internals of this class are the only thing that can edit them
         // and its fairly simple.
 
-        List<Action> updateFunctions_;
+        List<Func<bool>> updateFunctions_;
         List<TimeSpan> updateFreq_;
         List<TimeSpan> timeOfLastUpdate_;
         TimeSpan timeSinceStart_;
@@ -20,7 +20,7 @@ namespace Core
         public UpdateFunctions()
         {
             updateFreq_ = new List<TimeSpan>();
-            updateFunctions_ = new List<Action>();
+			updateFunctions_ = new List<Func<bool>>();
             timeOfLastUpdate_ = new List<TimeSpan>();
             timeSinceStart_ = new TimeSpan(0);
         }
@@ -31,7 +31,7 @@ namespace Core
         /// <param name="function">The function to call</param>
         /// <param name="updateFrequency">How often to call this function</param>
         /// <returns>The index of the function in the internal list.</returns>
-        public int AddUpdateFunction(Action function, TimeSpan updateFrequency)
+		public int AddUpdateFunction(Func<bool> function, TimeSpan updateFrequency)
         {
             updateFunctions_.Add(function);
             updateFreq_.Add(updateFrequency);
@@ -64,15 +64,17 @@ namespace Core
         /// <param name="timeSinceLastUpdate">The amount of time that has passed since this
         /// function was last called.  NOT since the indexed function was last called.
         /// </param>
-        public void CallUpdateFunction(TimeSpan timeSinceLastUpdate)
+        public bool CallUpdateFunction(TimeSpan timeSinceLastUpdate)
         {
             timeSinceStart_ += timeSinceLastUpdate;
+			bool shouldExit = false;
+
             if (updateFreq_.Count > index_)
             {
                 TimeSpan timeSinceLastFuncUpdate = timeSinceStart_ - timeOfLastUpdate_[index_];
                 if (timeSinceLastFuncUpdate > updateFreq_[index_])
                 {
-                    updateFunctions_[index_]();
+                    shouldExit = updateFunctions_[index_]();
                     timeOfLastUpdate_[index_] = timeSinceStart_;
                 }
             }
@@ -81,6 +83,8 @@ namespace Core
             {
                 index_ = 0;
             }
+
+			return shouldExit;
         }
     }
 }
