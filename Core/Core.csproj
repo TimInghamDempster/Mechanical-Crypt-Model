@@ -43,6 +43,7 @@
     <Compile Include="BBoxTree.cs" />
     <Compile Include="Colour.cs" />
     <Compile Include="RenderArrays3d.cs" />
+    <Compile Include="NormalDistributionRNG.cs" />
     <Compile Include="UniformIndexGrid.cs" />
     <Compile Include="Vector3d.cs" />
     <Compile Include="IRenderableItem.cs" />

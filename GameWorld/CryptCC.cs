@@ -27,7 +27,7 @@ namespace GameWorld
 
 		const int m_finalFrame = 500 * 200;
 
-        const float SecondsPerTimestep = 360.0f;
+        const float SecondsPerTimestep = 30.0f;
 
         const int m_numCryptsPerSide = 1;
         const float m_initialCryptSeparation = 2000.0f;
@@ -44,7 +44,7 @@ namespace GameWorld
         const float m_betaCateninConsumptionPerTimestep = 0.5f;
         const float m_anoikisProbabilityPerTimestep = 0.002f;
         const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-        const float m_offMembraneRestorationFactor = 0.01f;
+        const float m_offMembraneRestorationFactor = 0.001f;
         const float m_stromalRestorationFactor = 0.3f;
         Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
         const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -58,13 +58,13 @@ namespace GameWorld
         static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / m_compressionFactor); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
         static float CryptHeight { get { return CellSize * m_cellsPerColumn;}}
 
-		const float m_averageNumberOfCellsInCycle = 500 * m_compressionFactor;
+		const float m_averageNumberOfCellsInCycle = 100 * m_compressionFactor;
 
         float m_basicG0ProliferationBoundary = CryptHeight * -0.5f;
-        float m_basicG0StemBoundary = CryptHeight * -0.9f;
+        float m_basicG0StemBoundary = CryptHeight * -0.95f;
         
-		static float BasicG0ProliferationBetaCateninRequirement { get { return (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
-		static float BasicG0StemBetaCateninRequirement { get { return BasicG0ProliferationBetaCateninRequirement * 1.0f; } } 
+		static float BasicG0ProliferationBetaCateninRequirement { get { return 0.0f; } }// (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
+		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 1.0f; } } 
         
 		public CryptCC(IRenderer renderer, string filename)
         {
