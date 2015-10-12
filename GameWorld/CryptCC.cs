@@ -27,7 +27,7 @@ namespace GameWorld
 
 		const int m_finalFrame = 500 * 200;
 
-		const float SecondsPerTimestep = 30.0f;
+		const float SecondsPerTimestep = 60.0f;
 
 		const int m_numCryptsPerSide = 1;
 		const float m_initialCryptSeparation = 2000.0f;
@@ -300,7 +300,11 @@ namespace GameWorld
 						m_renderArraysAnoikis.Colours.Add(m_baseColours[0]);
 						m_renderArraysAnoikis.Visible.Add(true);
 
-						m_cells.Remove(i);
+                        if (m_cells.CycleStages[i] == CellCycleStage.G || m_cells.CycleStages[i] == CellCycleStage.Child)
+                        {
+                            m_cells.Remove(m_cells.ChildPointIndices[i]);
+                        }
+                        m_cells.Remove(i);
 					}
 					// Fixed probability rule.
 					/*Vector3d pos = m_cells.Positions[i];
@@ -619,6 +623,7 @@ namespace GameWorld
 							m_cells.Colours[childIndex] = m_baseColours[m_cells.ColourIndices[childIndex]];
 
 							m_cells.ChildPointIndices[i] = -1;
+                            m_cells.ChildPointIndices[childIndex] = -1;
 						}
 					}
 				}
@@ -706,6 +711,7 @@ namespace GameWorld
 			m_colourCounts[m_cells.ColourIndices[cellId]]++;
 
 			m_cells.ChildPointIndices[cellId] = childId;
+            m_cells.ChildPointIndices[childId] = cellId;
 		}
 	}
 }
