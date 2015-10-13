@@ -58,7 +58,7 @@ namespace GameWorld
 
         public void Remove(int index)
         {
-            m_freeIndices.Add(index);
+            //m_freeIndices.Add(index);
             Colours[index] = new Colour() { A = 0.0f, R = 0.0f, G = 0.0f, B = 0.0f };
             Active[index] = false;
         }
@@ -95,7 +95,7 @@ namespace GameWorld
                 BetaCatenin.Add(wnt);
                 GrowthStageRequiredTimes.Add(growthStageRequiredTime);
                 GrowthStageCurrentTimes.Add(0.0f);
-                CycleStages.Add(CellCycleStage.G0);
+                CycleStages.Add(cycleStage);
                 ColourIndices.Add(colourIndex);
                 CryptIds.Add(cryptIndex);
                 ChildPointIndices.Add(-1);
