@@ -64,7 +64,7 @@ namespace GameWorld
 		float m_basicG0StemBoundary = CryptHeight * -0.95f;
 
 		static float BasicG0ProliferationBetaCateninRequirement { get { return 0.0f; } }// (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
-		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 1.0f; } }
+		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 9.0f; } }
 
 		public CryptCC(IRenderer renderer, string filename)
 		{
