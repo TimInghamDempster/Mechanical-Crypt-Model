@@ -54,6 +54,8 @@ namespace GameWorld
 		int[] m_colourCounts;
 		UniformIndexGrid m_grid;
 
+        int m_numStemDivisionsThisFrame;
+
 		const float m_compressionFactor = 0.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
 
 		static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / m_compressionFactor); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
@@ -146,8 +148,8 @@ namespace GameWorld
 					pos.Z += z;
 
 					m_cells.AddCell(pos,
-							   (float)(-1000.0 * m_random.NextDouble()), // Randomise time of first division as we are jumping in part way through the simulation.
-							   (float)m_normalRNG.Next(),
+                               (float)(-m_averageGrowthTimesteps * m_random.NextDouble() * 10), // Randomise time of first division as we are jumping in part way through the simulation.
+							   m_averageGrowthTimesteps,
 							   m_baseColours[cryptColourIndex],
 							   cryptColourIndex,
 							   (UInt32)(cryptX + cryptY * m_numCryptsPerSide),
@@ -207,7 +209,7 @@ namespace GameWorld
 				}
 			}
 
-			outfile.WriteLine(count.ToString());
+			outfile.WriteLine(count.ToString() + ',' + m_numStemDivisionsThisFrame.ToString());
 			outfile.Flush();
 		}
 
@@ -254,6 +256,8 @@ namespace GameWorld
 					int a = 0;
 					a++;
 				}
+
+                m_numStemDivisionsThisFrame = 0;
 
 				m_crypts.PreTick();
 				//UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
@@ -406,11 +410,26 @@ namespace GameWorld
 
 										float targetSeparation = m_cells.Radii[i] + m_cells.Radii[j];
 
-										if (j == m_cells.ChildPointIndices[i])
-										{
-											float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
-											targetSeparation *= growthFactor;
-										}
+                                        if (j == m_cells.ChildPointIndices[i])
+                                        {
+                                            float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
+                                            targetSeparation *= growthFactor;
+                                        }
+                                        else
+                                        {
+                                            if (m_cells.CycleStages[i] == CellCycleStage.Child)
+                                            {
+                                                int parentId = m_cells.ChildPointIndices[i];
+                                                float growthFactor = m_cells.GrowthStageCurrentTimes[parentId] / m_cells.GrowthStageRequiredTimes[parentId];
+                                                targetSeparation = m_cells.Radii[j] + m_cells.Radii[i] * growthFactor;
+                                            }
+                                            if (m_cells.CycleStages[j] == CellCycleStage.Child)
+                                            {
+                                                int parentId = m_cells.ChildPointIndices[j];
+                                                float growthFactor = m_cells.GrowthStageCurrentTimes[parentId] / m_cells.GrowthStageRequiredTimes[parentId];
+                                                targetSeparation = m_cells.Radii[i] + m_cells.Radii[j] * growthFactor;
+                                            }
+                                        }
 
 										if (separation < targetSeparation)
 										{
@@ -642,6 +661,7 @@ namespace GameWorld
 						if (m_cells.BetaCatenin[i] > BasicG0StemBetaCateninRequirement)
 						{
 							EnterG1(i);
+                            m_numStemDivisionsThisFrame++;
 						}
 					}
 					else if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
@@ -697,14 +717,14 @@ namespace GameWorld
 
 			int childId = m_cells.AddCell(newPos,
 				0.0f,
-				(float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimesteps,
+				(float)m_normalRNG.Next(),
 				m_cells.Colours[cellId],
 				m_cells.ColourIndices[cellId],
 				m_cells.CryptIds[cellId],
 				CellSize,
 				CellCycleStage.Child);
 
-			m_cells.GrowthStageRequiredTimes[cellId] = (float)(0.5f + m_random.NextDouble()) * m_averageGrowthTimesteps;
+			m_cells.GrowthStageRequiredTimes[cellId] = (float)m_normalRNG.Next();
 
 			m_cells.CycleStages[childId] = CellCycleStage.Child;
 			m_colourCounts[m_cells.ColourIndices[cellId]]++;
