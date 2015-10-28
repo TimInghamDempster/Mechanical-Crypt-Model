@@ -12,7 +12,8 @@ namespace GameWorld
     {
         Child, // This cell is not yet independant and forms part of a growing cell before it divides.
         G0,
-        G
+        G1,
+        M
     }
 
     public class CellArrayCC
@@ -25,8 +26,9 @@ namespace GameWorld
         public List<Colour> Colours;
         public List<float> BetaCatenin;
         public List<CellCycleStage> CycleStages;
-        public List<float> GrowthStageCurrentTimes;
-        public List<float> GrowthStageRequiredTimes;
+        public List<float> GrowthStageCurrentTimesteps;
+        public List<float> GrowthStageRequiredTimesteps;
+        public List<float> MStageCurrentTimesteps;
         public List<int> ColourIndices;
         public List<UInt32> CryptIds;
         public List<int> ChildPointIndices;
@@ -44,8 +46,9 @@ namespace GameWorld
             Colours = new List<Colour>();
             BetaCatenin = new List<float>();
             CycleStages = new List<CellCycleStage>();
-            GrowthStageCurrentTimes = new List<float>();
-            GrowthStageRequiredTimes = new List<float>();
+            GrowthStageCurrentTimesteps = new List<float>();
+            GrowthStageRequiredTimesteps = new List<float>();
+            MStageCurrentTimesteps = new List<float>();
             ColourIndices = new List<int>();
             CryptIds = new List<UInt32>();
             ChildPointIndices = new List<int>();
@@ -75,8 +78,9 @@ namespace GameWorld
                 Radii[index] = radius;
                 Colours[index] = colour;
                 BetaCatenin[index] = wnt;
-                GrowthStageRequiredTimes[index] = growthStageRequiredTime;
-                GrowthStageCurrentTimes[index] = 0.0f;
+                GrowthStageRequiredTimesteps[index] = growthStageRequiredTime;
+                GrowthStageCurrentTimesteps[index] = 0.0f;
+                MStageCurrentTimesteps[index] = 0.0f;
                 CycleStages[index] = cycleStage;
                 ColourIndices[index] = colourIndex;
                 CryptIds[index] = cryptIndex;
@@ -93,8 +97,9 @@ namespace GameWorld
                 Radii.Add(radius);
                 Colours.Add(colour);
                 BetaCatenin.Add(wnt);
-                GrowthStageRequiredTimes.Add(growthStageRequiredTime);
-                GrowthStageCurrentTimes.Add(0.0f);
+                GrowthStageRequiredTimesteps.Add(growthStageRequiredTime);
+                GrowthStageCurrentTimesteps.Add(0.0f);
+                MStageCurrentTimesteps.Add(0.0f);
                 CycleStages.Add(cycleStage);
                 ColourIndices.Add(colourIndex);
                 CryptIds.Add(cryptIndex);

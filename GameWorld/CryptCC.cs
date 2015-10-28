@@ -45,7 +45,7 @@ namespace GameWorld
 		const float m_betaCateninConsumptionPerTimestep = 0.5f;
 		const float m_anoikisProbabilityPerTimestep = 0.002f;
 		const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-		const float m_offMembraneRestorationFactor = 0.001f;
+		const float m_offMembraneRestorationFactor = 0.00001f;
 		const float m_stromalRestorationFactor = 0.3f;
 		Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
 		const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -54,7 +54,7 @@ namespace GameWorld
 		int[] m_colourCounts;
 		UniformIndexGrid m_grid;
 
-        int m_numStemDivisionsThisFrame;
+        int m_numAnoikisEvents = 0;
 
 		const float m_compressionFactor = 0.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
 
@@ -68,6 +68,8 @@ namespace GameWorld
 
 		static float BasicG0ProliferationBetaCateninRequirement { get { return 100.0f; } }// (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
 		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 9.0f; } }
+
+        const float MStageRequiredTimesteps = m_averageGrowthTimesteps / 10.0f;
 
 		public CryptCC(IRenderer renderer, string filename)
 		{
@@ -186,7 +188,7 @@ namespace GameWorld
 				if (active)
 				{
 					count++;
-					if (m_cells.CycleStages[i] == CellCycleStage.G)
+					if (m_cells.CycleStages[i] == CellCycleStage.G1)
 					{
 						ki67Count++;
 					}
@@ -209,8 +211,10 @@ namespace GameWorld
 				}
 			}
 
-			outfile.WriteLine(count.ToString() + ',' + m_numStemDivisionsThisFrame.ToString());
+			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString());
 			outfile.Flush();
+
+            m_numAnoikisEvents = 0;
 		}
 
 		void OutputAnoikisData()
@@ -245,24 +249,18 @@ namespace GameWorld
 
 				if (framecount == m_finalFrame)
 				{
+                    //OutputAnoikisData();
 					outfile.Close();
 					return true;
 				}
 
 				framecount++;
 
-				if (framecount > 10000)
-				{
-					int a = 0;
-					a++;
-				}
-
-                m_numStemDivisionsThisFrame = 0;
-
 				m_crypts.PreTick();
 				//UpdateWnt(); // More biologically based G0 model that needs ephrin modelling to be realistic.
 				DoBasicG0Phase(); // Basic phenomenological G0 model.
 				DoGrowthPhase();
+                DoMPhase();
 				AssignCellsToGrid();
 				EnforceCryptWalls();
 				DoCollisionAndMovement();
@@ -306,11 +304,12 @@ namespace GameWorld
 						m_renderArraysAnoikis.Colours.Add(m_baseColours[0]);
 						m_renderArraysAnoikis.Visible.Add(true);
 
-                        if (m_cells.CycleStages[i] == CellCycleStage.G || m_cells.CycleStages[i] == CellCycleStage.Child)
+                        if (m_cells.CycleStages[i] == CellCycleStage.M || m_cells.CycleStages[i] == CellCycleStage.Child)
                         {
                             m_cells.Remove(m_cells.ChildPointIndices[i]);
                         }
                         m_cells.Remove(i);
+                        m_numAnoikisEvents++;
 					}
 					// Fixed probability rule.
 					/*Vector3d pos = m_cells.Positions[i];
@@ -397,6 +396,11 @@ namespace GameWorld
 										Vector3d cryptPos1 = m_crypts.m_cryptPositions[cryptId1];
 										Vector3d cryptPos2 = m_crypts.m_cryptPositions[cryptId2];
 
+                                        /* Use this version for spherical cells
+                                        Vector3d outerPos = m_cells.Positions[i];
+                                        Vector3d innerPos = m_cells.Positions[j];
+                                        */
+
 										Vector3d outerPos = m_cells.OnMembranePositions[i];
 										Vector3d innerPos = m_cells.OnMembranePositions[j];
 										//Vector3d dummy;
@@ -412,24 +416,24 @@ namespace GameWorld
 
                                         if (j == m_cells.ChildPointIndices[i])
                                         {
-                                            float growthFactor = m_cells.GrowthStageCurrentTimes[i] / m_cells.GrowthStageRequiredTimes[i];
+                                            float growthFactor = m_cells.MStageCurrentTimesteps[i] / MStageRequiredTimesteps;
                                             targetSeparation *= growthFactor;
                                         }
-                                        else
+                                        /*else
                                         {
                                             if (m_cells.CycleStages[i] == CellCycleStage.Child)
                                             {
                                                 int parentId = m_cells.ChildPointIndices[i];
-                                                float growthFactor = m_cells.GrowthStageCurrentTimes[parentId] / m_cells.GrowthStageRequiredTimes[parentId];
+                                                float growthFactor = m_cells.GrowthStageCurrentTimesteps[parentId] / m_cells.GrowthStageRequiredTimesteps[parentId];
                                                 targetSeparation = m_cells.Radii[j] + m_cells.Radii[i] * growthFactor;
                                             }
                                             if (m_cells.CycleStages[j] == CellCycleStage.Child)
                                             {
                                                 int parentId = m_cells.ChildPointIndices[j];
-                                                float growthFactor = m_cells.GrowthStageCurrentTimes[parentId] / m_cells.GrowthStageRequiredTimes[parentId];
+                                                float growthFactor = m_cells.GrowthStageCurrentTimesteps[parentId] / m_cells.GrowthStageRequiredTimesteps[parentId];
                                                 targetSeparation = m_cells.Radii[i] + m_cells.Radii[j] * growthFactor;
                                             }
-                                        }
+                                        }*/
 
 										if (separation < targetSeparation)
 										{
@@ -621,32 +625,59 @@ namespace GameWorld
 			{
 				if (m_cells.Active[i])
 				{
-					if (m_cells.CycleStages[i] == CellCycleStage.G)
+					if (m_cells.CycleStages[i] == CellCycleStage.G1)
 					{
-						m_cells.GrowthStageCurrentTimes[i]++;
+						m_cells.GrowthStageCurrentTimesteps[i]++;
 
-						if (m_cells.GrowthStageCurrentTimes[i] > m_cells.GrowthStageRequiredTimes[i])
-						{
-							m_cells.GrowthStageCurrentTimes[i] = 0.0f;
-							m_cells.CycleStages[i] = CellCycleStage.G0;
-							m_cells.BetaCatenin[i] = 0.0f;
-							m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
-                            m_cells.GrowthStageRequiredTimes[i] = (float)m_normalRNG.Next();
+                        float lerpVal = m_cells.GrowthStageCurrentTimesteps[i] / m_cells.GrowthStageRequiredTimesteps[i];
+                        m_cells.Radii[i] = CellSize * (1.0f - lerpVal) + CellSize * lerpVal * (float)Math.Sqrt(2);
 
-							int childIndex = m_cells.ChildPointIndices[i];
-							m_cells.GrowthStageCurrentTimes[childIndex] = 0.0f;
-							m_cells.CycleStages[childIndex] = CellCycleStage.G0;
-							m_cells.BetaCatenin[childIndex] = 0.0f;
-							m_cells.Colours[childIndex] = m_baseColours[m_cells.ColourIndices[childIndex]];
-                            m_cells.GrowthStageRequiredTimes[childIndex] = (float)m_normalRNG.Next();
-
-							m_cells.ChildPointIndices[i] = -1;
-                            m_cells.ChildPointIndices[childIndex] = -1;
-						}
+                        if (m_cells.GrowthStageCurrentTimesteps[i] > m_cells.GrowthStageRequiredTimesteps[i])
+                        {
+                            EnterM(i);
+                        }
 					}
 				}
 			}
 		}
+
+        void DoMPhase()
+        {
+            for (int i = 0; i < m_cells.CycleStages.Count; i++)
+			{
+                if (m_cells.Active[i])
+				{
+                    if (m_cells.CycleStages[i] == CellCycleStage.M)
+                    {
+                        m_cells.MStageCurrentTimesteps[i]++;
+
+                        int childIndex = m_cells.ChildPointIndices[i];
+
+                        float lerpVal = m_cells.MStageCurrentTimesteps[i] / MStageRequiredTimesteps;
+                        m_cells.Radii[childIndex] = CellSize * lerpVal;
+                        m_cells.Radii[i] = CellSize * lerpVal + CellSize * (float)Math.Sqrt(2) * (1.0f - lerpVal);
+
+                        if (m_cells.MStageCurrentTimesteps[i] > MStageRequiredTimesteps)
+                        {
+                            m_cells.GrowthStageCurrentTimesteps[i] = 0.0f;
+                            m_cells.CycleStages[i] = CellCycleStage.G0;
+                            m_cells.BetaCatenin[i] = 0.0f;
+                            m_cells.Colours[i] = m_baseColours[m_cells.ColourIndices[i]];
+                            m_cells.GrowthStageRequiredTimesteps[i] = (float)m_normalRNG.Next();
+                        
+                            m_cells.GrowthStageCurrentTimesteps[childIndex] = 0.0f;
+                            m_cells.CycleStages[childIndex] = CellCycleStage.G0;
+                            m_cells.BetaCatenin[childIndex] = 0.0f;
+                            m_cells.Colours[childIndex] = m_baseColours[m_cells.ColourIndices[childIndex]];
+                            m_cells.GrowthStageRequiredTimesteps[childIndex] = (float)m_normalRNG.Next();
+
+                            m_cells.ChildPointIndices[i] = -1;
+                            m_cells.ChildPointIndices[childIndex] = -1;
+                        }
+                    }
+                }
+            }
+        }
 
 		void DoBasicG0Phase()
 		{
@@ -661,7 +692,6 @@ namespace GameWorld
 						if (m_cells.BetaCatenin[i] > BasicG0StemBetaCateninRequirement)
 						{
 							EnterG1(i);
-                            m_numStemDivisionsThisFrame++;
 						}
 					}
 					else if (m_cells.Positions[i].Y < m_basicG0ProliferationBoundary)
@@ -701,7 +731,13 @@ namespace GameWorld
 
 		void EnterG1(int cellId)
 		{
-			m_cells.CycleStages[cellId] = CellCycleStage.G;
+            m_cells.CycleStages[cellId] = CellCycleStage.G1;
+            m_cells.Colours[cellId] = new Colour() { A = 1.0f, R = 1.0f, G = 0.0f, B = 1.0f };
+        }
+
+        void EnterM(int cellId)
+        {
+			m_cells.CycleStages[cellId] = CellCycleStage.M;
 			m_cells.BetaCatenin[cellId] = 0;
 			m_cells.Colours[cellId] = new Colour() { A = 1.0f, R = 1.0f, G = 0.0f, B = 1.0f };
 
@@ -721,16 +757,16 @@ namespace GameWorld
 				m_cells.Colours[cellId],
 				m_cells.ColourIndices[cellId],
 				m_cells.CryptIds[cellId],
-				CellSize,
+				CellSize / MStageRequiredTimesteps,
 				CellCycleStage.Child);
 
-			m_cells.GrowthStageRequiredTimes[cellId] = (float)m_normalRNG.Next();
+			m_cells.GrowthStageRequiredTimesteps[cellId] = (float)m_normalRNG.Next();
 
 			m_cells.CycleStages[childId] = CellCycleStage.Child;
 			m_colourCounts[m_cells.ColourIndices[cellId]]++;
 
 			m_cells.ChildPointIndices[cellId] = childId;
             m_cells.ChildPointIndices[childId] = cellId;
-		}
+        }
 	}
 }
