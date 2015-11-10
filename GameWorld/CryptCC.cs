@@ -45,7 +45,7 @@ namespace GameWorld
 		const float m_betaCateninConsumptionPerTimestep = 0.5f;
 		const float m_anoikisProbabilityPerTimestep = 0.002f;
 		const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-		const float m_offMembraneRestorationFactor = 0.00001f;
+		const float m_offMembraneRestorationFactor = 0.001f;
 		const float m_stromalRestorationFactor = 0.3f;
 		Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
 		const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -54,7 +54,8 @@ namespace GameWorld
 		int[] m_colourCounts;
 		UniformIndexGrid m_grid;
 
-        int m_numAnoikisEvents = 0;
+		int m_numAnoikisEvents = 0;
+		int m_numBirthEvents = 0;
 
 		const float m_compressionFactor = 0.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
 
@@ -69,7 +70,7 @@ namespace GameWorld
 		static float BasicG0ProliferationBetaCateninRequirement { get { return 100.0f; } }// (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
 		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 9.0f; } }
 
-        const float MStageRequiredTimesteps = m_averageGrowthTimesteps / 10.0f;
+        const float MStageRequiredTimesteps = 1200 / SecondsPerTimestep; // 20 mins from Potten92
 
 		public CryptCC(IRenderer renderer, string filename)
 		{
@@ -211,10 +212,11 @@ namespace GameWorld
 				}
 			}
 
-			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString());
+			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString() + ',' + m_numBirthEvents.ToString());
 			outfile.Flush();
 
             m_numAnoikisEvents = 0;
+			m_numBirthEvents = 0;
 		}
 
 		void OutputAnoikisData()
@@ -673,6 +675,8 @@ namespace GameWorld
 
                             m_cells.ChildPointIndices[i] = -1;
                             m_cells.ChildPointIndices[childIndex] = -1;
+
+							m_numBirthEvents++;
                         }
                     }
                 }
