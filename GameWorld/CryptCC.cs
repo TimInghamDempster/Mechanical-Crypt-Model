@@ -34,8 +34,8 @@ namespace GameWorld
 		const float m_initialCryptSeparation = 2000.0f;
 		const float m_fieldHalfSize = (float)m_numCryptsPerSide / 2.0f * m_initialCryptSeparation + 100.0f;
 
-		const float m_averageGrowthTimeSeconds = 108000.0f; // == 30 hours for complete cell cycle
-		const float m_averageGrowthTimesteps = m_averageGrowthTimeSeconds / SecondsPerTimestep;
+		static float m_averageGrowthTimeSeconds = 108000.0f; // == 30 hours for complete cell cycle
+		static float m_averageGrowthTimesteps { get { return m_averageGrowthTimeSeconds / SecondsPerTimestep; } }
 
 		const float m_cryptRadius = 500.0f;
 		const float m_cellsPerColumn = 80.0f; // Look up reference for this, lots in Potten
@@ -45,7 +45,7 @@ namespace GameWorld
 		const float m_betaCateninConsumptionPerTimestep = 0.5f;
 		const float m_anoikisProbabilityPerTimestep = 0.002f;
 		const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-		const float m_offMembraneRestorationFactor = 0.001f;
+		static float m_offMembraneRestorationFactor = 0.001f;
 		const float m_stromalRestorationFactor = 0.3f;
 		Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
 		const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -76,11 +76,17 @@ namespace GameWorld
 
         const float MStageRequiredTimesteps = 1238.4f / SecondsPerTimestep; // 20.64 minutes (from Potten92)
 
-		public CryptCC(IRenderer renderer, string filename)
+		public CryptCC(IRenderer renderer, string filename, float averageGrowthTimeSeconds, float attachmentForce)
 		{
-			outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\" + filename, false);
+            string extension = System.IO.Path.GetExtension(filename);
+            filename = System.IO.Path.GetDirectoryName(filename) + @"\" + System.IO.Path.GetFileNameWithoutExtension(filename);
+
+			outfile = new System.IO.StreamWriter(@"C:\Users\Tim\Desktop\" + filename + "_CC" + (averageGrowthTimeSeconds / 3600).ToString() + "hrs_AF" + attachmentForce.ToString() + extension, false);
 			m_renderer = renderer;
 			m_scene = m_renderer.GetNewScene();
+
+            m_averageGrowthTimeSeconds = averageGrowthTimeSeconds;
+            m_offMembraneRestorationFactor = attachmentForce;
 
 			m_random = new Random(DateTime.Now.Millisecond);
             m_normalRNG = new NormalDistributionRNG(m_random, m_averageGrowthTimesteps, GrowthTimestepsStandardDeviation);

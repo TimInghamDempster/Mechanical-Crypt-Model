@@ -17,13 +17,21 @@ namespace CryptCC
         static void Main(string[] args)
         {
 			string filename = "data.txt";
-			if(args.Count() > 0)
+            float cycleTime = 108000f;
+            float attachmentForce = 0.001f;
+
+			if(args.Count() > 2)
 			{
 				filename = args[0];
+                if(float.TryParse(args[1], out cycleTime))
+                {
+                    cycleTime *= 3600f;
+                }
+                float.TryParse(args[2], out attachmentForce);
 			}
             
 			SlimDX11Renderer.Renderer3d renderer = new SlimDX11Renderer.Renderer3d("Cell-Centre Crypt Simulation");
-            m_crypt = new GameWorld.CryptCC(renderer, filename);
+            m_crypt = new GameWorld.CryptCC(renderer, filename, cycleTime, attachmentForce);
 
             m_camera = new SlimDX11Renderer.Camera((float)(Math.PI / 3.0), 1280.0f / 768.0f, 0.1f, 100000.0f);
 
