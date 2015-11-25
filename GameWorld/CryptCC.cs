@@ -45,7 +45,7 @@ namespace GameWorld
 		const float m_betaCateninConsumptionPerTimestep = 0.5f;
 		const float m_anoikisProbabilityPerTimestep = 0.002f;
 		const float m_membraneSeparationToTriggerAnoikis = 100.0f;
-		const float m_offMembraneRestorationFactor = 0.00001f;
+		const float m_offMembraneRestorationFactor = 0.001f;
 		const float m_stromalRestorationFactor = 0.3f;
 		Vector2d m_colonBoundary = new Vector2d(m_fieldHalfSize, m_fieldHalfSize);
 		const float m_colonBoundaryRepulsionFactor = 0.3f;
@@ -54,14 +54,19 @@ namespace GameWorld
 		int[] m_colourCounts;
 		UniformIndexGrid m_grid;
 
+        const float GrowthTimestepsStandardDeviation = 2.625f * 3600f / SecondsPerTimestep;
+
         int m_numAnoikisEvents = 0;
 
-		const float m_compressionFactor = 0.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
+		const float m_compressionFactor = 1.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
 
-		static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / m_cellsPerRadius / 2.0f / m_compressionFactor); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) / compression overshoot
-		static float CryptHeight { get { return CellSize * m_cellsPerColumn; } }
+		static float CellSize { get { return (float)(m_cryptRadius * 2.0f * Math.PI / (m_cellsPerRadius * 2.0f)); } } // == crypt circumference (2 * Pi * R) / cell diameter (2 * r) 
 
-		const float m_averageNumberOfCellsInCycle = 100 * m_compressionFactor;
+        static float cellsPerSectionInNiche = m_cryptRadius * 2.0f * (float)Math.PI / 4.0f /(CellSize * 2.0f); // Quarter circumference (2 * Pi * R / 4) / cell size (2 * r)
+        static float cellsPerSectionInTop = m_flutingRadius * 2.0f * (float)Math.PI / 4.0f / (CellSize * 2.0f); // Quarter circumference (2 * Pi * R / 4) / cell size (2 * r)
+        static float numVerticalCells = m_cellsPerColumn - cellsPerSectionInNiche - cellsPerSectionInTop; // Work out how many cells in the vertical section of the crypt
+
+        static float CryptHeight { get { return (CellSize * 2.0f * numVerticalCells + m_cryptRadius + m_flutingRadius) / m_compressionFactor; } } // number of cells in vertical section * cell diameter (2 * r) + height of niche + height of top.
 
 		float m_basicG0ProliferationBoundary = CryptHeight * -0.7f;
 		float m_basicG0StemBoundary = CryptHeight * -0.95f;
@@ -69,7 +74,7 @@ namespace GameWorld
 		static float BasicG0ProliferationBetaCateninRequirement { get { return 100.0f; } }// (m_cellsPerRadius * m_cellsPerColumn * m_averageGrowthTimesteps / m_averageNumberOfCellsInCycle) - m_averageGrowthTimesteps; } }
 		static float BasicG0StemBetaCateninRequirement { get { return m_averageGrowthTimesteps * 9.0f; } }
 
-        const float MStageRequiredTimesteps = m_averageGrowthTimesteps / 10.0f;
+        const float MStageRequiredTimesteps = 1238.4f / SecondsPerTimestep; // 20.64 minutes (from Potten92)
 
 		public CryptCC(IRenderer renderer, string filename)
 		{
@@ -78,7 +83,7 @@ namespace GameWorld
 			m_scene = m_renderer.GetNewScene();
 
 			m_random = new Random(DateTime.Now.Millisecond);
-            m_normalRNG = new NormalDistributionRNG(m_random, m_averageGrowthTimesteps, 2.625f * 3600f / SecondsPerTimestep);
+            m_normalRNG = new NormalDistributionRNG(m_random, m_averageGrowthTimesteps, GrowthTimestepsStandardDeviation);
 
 			m_cells = new CellArrayCC();
 
@@ -133,9 +138,9 @@ namespace GameWorld
 
 		public void PopulateCrypt(int cryptX, int cryptY, int cryptColourIndex, float centeringOffset)
 		{
-			for(int hIndex = 1; hIndex < m_cellsPerColumn / 2 - 2; hIndex++)
+			for(int hIndex = 1; hIndex < m_cellsPerColumn / m_compressionFactor - 2; hIndex++)
 			{
-				float height = ( CryptHeight * hIndex * 2 / m_cellsPerColumn);
+				float height = ( CryptHeight * hIndex * m_compressionFactor / m_cellsPerColumn);
 
 				for(int rIndex = 0; rIndex < m_cellsPerRadius; rIndex++)
 				{
