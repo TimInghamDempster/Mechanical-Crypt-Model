@@ -57,6 +57,7 @@ namespace GameWorld
         const float GrowthTimestepsStandardDeviation = 2.625f * 3600f / SecondsPerTimestep;
 
         int m_numAnoikisEvents = 0;
+		int m_numBirthEvents = 0;
 
 		const float m_compressionFactor = 1.75f; // Account for the fact that the cells compress so we have more of them than we get from simple legth/radius calculation
 
@@ -222,10 +223,11 @@ namespace GameWorld
 				}
 			}
 
-			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString());
+			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString() + ',' + m_numBirthEvents.ToString());
 			outfile.Flush();
 
             m_numAnoikisEvents = 0;
+			m_numBirthEvents = 0;
 		}
 
 		void OutputAnoikisData()
@@ -684,6 +686,8 @@ namespace GameWorld
 
                             m_cells.ChildPointIndices[i] = -1;
                             m_cells.ChildPointIndices[childIndex] = -1;
+
+							m_numBirthEvents++;
                         }
                     }
                 }
