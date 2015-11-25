@@ -255,14 +255,17 @@ namespace SlimDX11Renderer
                         var colour = rArrays.Colours[i];
                         var pos = rArrays.Positions[i];
 
-                        effect.GetVariableByName("colour").AsVector().Set(new Vector4(colour.R, colour.G, colour.B, colour.A));
-                        //effect.GetVariableByName("entityPosition").AsVector().Set(new Vector2(pos.X / scene.Width, pos.Y / scene.Height));
-                        renderable.Effect.GetVariableByName("worldViewProj").AsMatrix().SetMatrix(Matrix.Translation(pos.X, pos.Y, pos.Z) * cameras_[cameraIndex_].ViewProj);
-
-                        for (int j = 0; j < renderable.Technique.Description.PassCount; ++j)
+                        if (pos.Z > 900.0f)
                         {
-                            renderable.Technique.GetPassByIndex(j).Apply(device_.ImmediateContext);
-                            device_.ImmediateContext.Draw(renderable.Mesh.VertexCount, renderable.Mesh.StartVertex);
+                            effect.GetVariableByName("colour").AsVector().Set(new Vector4(colour.R, colour.G, colour.B, colour.A));
+                            //effect.GetVariableByName("entityPosition").AsVector().Set(new Vector2(pos.X / scene.Width, pos.Y / scene.Height));
+                            renderable.Effect.GetVariableByName("worldViewProj").AsMatrix().SetMatrix(Matrix.Translation(pos.X, pos.Y, pos.Z) * cameras_[cameraIndex_].ViewProj);
+
+                            for (int j = 0; j < renderable.Technique.Description.PassCount; ++j)
+                            {
+                                renderable.Technique.GetPassByIndex(j).Apply(device_.ImmediateContext);
+                                device_.ImmediateContext.Draw(renderable.Mesh.VertexCount, renderable.Mesh.StartVertex);
+                            }
                         }
                     }
                 }
