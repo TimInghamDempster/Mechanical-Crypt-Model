@@ -25,6 +25,9 @@ namespace GameWorld
         NormalDistributionRNG m_normalRNG;
 
 		System.IO.StreamWriter outfile;
+		List<int> m_birthCountList = new List<int>();
+		List<int> m_counts = new List<int>();
+		List<int> m_anoikisCountList = new List<int>();
 
 		const int m_finalFrame = 500 * 200;
 
@@ -223,14 +226,15 @@ namespace GameWorld
 				}
 			}
 
-			outfile.WriteLine(count.ToString() + ',' + m_numAnoikisEvents.ToString() + ',' + m_numBirthEvents.ToString());
-			outfile.Flush();
+			m_anoikisCountList.Add(m_numAnoikisEvents);
+			m_counts.Add(count);
+			m_birthCountList.Add(m_numBirthEvents);
 
             m_numAnoikisEvents = 0;
 			m_numBirthEvents = 0;
 		}
 
-		void OutputAnoikisData()
+		void OutputAnoikisAndOtherData()
 		{
 			int[] data = new int[100];
 
@@ -242,10 +246,31 @@ namespace GameWorld
 				data[index]++;
 			}
 
-			foreach (int dataPoint in data)
+			outfile.WriteLine("Anoikis Locations, Cellularity, Births, Deaths");
+
+			int numPoints = Math.Max(data.Count(), m_counts.Count);
+			
+			for(int i = 0; i < numPoints; i++)
 			{
-				outfile.WriteLine(dataPoint);
+				string line = ",";
+
+				if(i < data.Count())
+				{
+					line = data[i].ToString() + ",";
+				}
+
+				if(i < m_counts.Count)
+				{
+					line += m_counts[i].ToString() + "," + m_birthCountList[i].ToString() + "," + m_anoikisCountList[i].ToString();
+				}
+				else
+				{
+					line += ",,,";
+				}
+
+				outfile.WriteLine(line);
 			}
+
 			outfile.Flush();
 		}
 
@@ -262,7 +287,7 @@ namespace GameWorld
 
 				if (framecount == m_finalFrame)
 				{
-                    //OutputAnoikisData();
+                    OutputAnoikisAndOtherData();
 					outfile.Close();
 					return true;
 				}
